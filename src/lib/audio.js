@@ -1,7 +1,5 @@
 // Geluid: Nederlandse tekst-naar-spraak + vrolijke toontjes via WebAudio.
 
-import { LETTER_SOUNDS } from '../data/content.js'
-
 let dutchVoice = null
 
 function pickDutchVoice() {
@@ -22,20 +20,45 @@ if (typeof window !== 'undefined' && window.speechSynthesis) {
   }
 }
 
-export function speak(text, { rate = 0.85 } = {}) {
-  if (!window.speechSynthesis) return
-  window.speechSynthesis.cancel()
-  const utter = new SpeechSynthesisUtterance(text)
-  utter.lang = 'nl-NL'
-  utter.rate = rate
-  utter.pitch = 1.1
+function utter(text, rate, pitch = 1.05) {
+  const u = new SpeechSynthesisUtterance(text)
+  u.lang = 'nl-NL'
+  u.rate = rate
+  u.pitch = pitch
   const voice = pickDutchVoice()
-  if (voice) utter.voice = voice
-  window.speechSynthesis.speak(utter)
+  if (voice) u.voice = voice
+  return u
 }
 
+// Zinnen: rustig tempo voor een kind van 5
+export function speak(text, { rate = 0.72 } = {}) {
+  if (!window.speechSynthesis) return
+  window.speechSynthesis.cancel()
+  window.speechSynthesis.speak(utter(text, rate))
+}
+
+// Losse letter: laat de stem de letter zelf uitspreken (geen fonetische
+// omspelling meer — dat klonk dubbel, "oo" i.p.v. "o"). Extra langzaam.
 export function speakLetter(letter) {
-  speak(LETTER_SOUNDS[letter.toUpperCase()] || letter, { rate: 0.8 })
+  if (!window.speechSynthesis) return
+  window.speechSynthesis.cancel()
+  window.speechSynthesis.speak(utter(letter.toLowerCase(), 0.55))
+}
+
+// Klanken plakken: "b" ... "a" ... "ba" na elkaar
+export function speakBlend(syllable) {
+  if (!window.speechSynthesis) return
+  window.speechSynthesis.cancel()
+  const [first, second] = syllable.split('')
+  window.speechSynthesis.speak(utter(first, 0.5))
+  window.speechSynthesis.speak(utter(second, 0.5))
+  window.speechSynthesis.speak(utter(syllable, 0.55))
+}
+
+export function speakSyllable(syllable) {
+  if (!window.speechSynthesis) return
+  window.speechSynthesis.cancel()
+  window.speechSynthesis.speak(utter(syllable, 0.55))
 }
 
 // ── Vrolijke geluidjes ──

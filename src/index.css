@@ -186,12 +186,14 @@ button {
 .intro-card {
   background: #fff;
   border-radius: 28px;
-  padding: 30px 44px;
+  padding: 30px 24px;
   text-align: center;
   box-shadow: 0 6px 0 rgba(0, 0, 0, 0.15);
   margin-top: 10px;
   cursor: pointer;
   min-width: 260px;
+  max-width: calc(100vw - 40px);
+  box-sizing: border-box;
 }
 
 .intro-image { font-size: 6rem; line-height: 1.2; }
@@ -492,6 +494,55 @@ button {
   to {
     transform: translateY(110vh) rotate(720deg);
   }
+}
+
+/* ── Fonkelende sterretjes op de topauto's ── */
+.sparkle {
+  animation: sparkle 1.8s ease-in-out infinite;
+  opacity: 0;
+}
+
+@keyframes sparkle {
+  0%, 100% { opacity: 0; transform: scale(0.6); transform-origin: center; transform-box: fill-box; }
+  50% { opacity: 0.95; transform: scale(1.15); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sparkle, .bounce, .celebrate-car { animation: none; }
+  .sparkle { opacity: 0.8; }
+}
+
+/* ── Klanken plakken (b + a = ba) ── */
+.blend-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.blend-letter {
+  font-size: 2.4rem;
+  font-weight: bold;
+  color: #4A90D9;
+  background: #EAF3FC;
+  border-radius: 14px;
+  padding: 4px 14px;
+}
+
+.blend-plus {
+  font-size: 1.7rem;
+  font-weight: bold;
+  color: #999;
+}
+
+.blend-result {
+  font-size: 2.4rem;
+  font-weight: bold;
+  color: #F95738;
+  background: #FFF3B0;
+  border-radius: 14px;
+  padding: 4px 14px;
 }
 
 /* ── Tablet (10") ── */

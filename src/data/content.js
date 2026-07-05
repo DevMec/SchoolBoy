@@ -1,22 +1,37 @@
-// Leerinhoud: letters en woorden voor een kind van 5 jaar.
-// Elke les heeft een titel, een emoji en een lijst items.
+// Leerinhoud: letters, klanken samenvoegen (b + a = ba) en woorden.
 // Lestypes:
-//  - 'letters': letters leren herkennen (hoor de letter, tik de juiste)
-//  - 'words':   woorden met plaatje (hoor het woord, tik het / vul de letter in)
+//  - 'letters':   letters herkennen. Eerst een korte check: kent hij de letter
+//                 al (in één keer goed), dan wordt die als 'gekend' geteld en
+//                 niet meer geoefend. Fout? Dan uitleg + extra oefening.
+//  - 'syllables': klanken plakken: hoor "b", "a" ... "ba" en tik de juiste.
+//                 Dit is de kern van leren lezen.
+//  - 'words':     woorden met plaatje (hoor het woord, tik het / vul de letter in)
 
 export const LESSONS = [
-  // ── Fase 1: klinkers eerst, dan medeklinkers in kleine groepjes ──
+  // ── klinkers eerst ──
   { id: 'let-1', type: 'letters', title: 'Letters: A · O · E', emoji: '🅰️', items: ['A', 'O', 'E'] },
   { id: 'let-2', type: 'letters', title: 'Letters: I · U', emoji: '✏️', items: ['I', 'U', 'A'] },
-  { id: 'let-3', type: 'letters', title: 'Letters: M · P · S', emoji: '📚', items: ['M', 'P', 'S'] },
-  { id: 'let-4', type: 'letters', title: 'Letters: K · T · N', emoji: '🔤', items: ['K', 'T', 'N'] },
-  { id: 'let-5', type: 'letters', title: 'Letters: B · D · R', emoji: '🖍️', items: ['B', 'D', 'R'] },
-  { id: 'let-6', type: 'letters', title: 'Letters: V · W · H', emoji: '📖', items: ['V', 'W', 'H'] },
-  { id: 'let-7', type: 'letters', title: 'Letters: G · J · L', emoji: '🎨', items: ['G', 'J', 'L'] },
-  { id: 'let-8', type: 'letters', title: 'Letters: F · Z · C', emoji: '🧩', items: ['F', 'Z', 'C'] },
-  { id: 'let-9', type: 'letters', title: 'Letters: X · Y · Q', emoji: '⭐', items: ['X', 'Y', 'Q'] },
 
-  // ── Fase 2: korte woorden met plaatjes ──
+  // ── medeklinkers in groepjes, meteen gevolgd door plakken ──
+  { id: 'let-3', type: 'letters', title: 'Letters: M · P · S', emoji: '📚', items: ['M', 'P', 'S'] },
+  { id: 'syl-1', type: 'syllables', title: 'Plakken: ma · po · sa', emoji: '🧲', items: ['ma', 'po', 'sa', 'mo'] },
+
+  { id: 'let-4', type: 'letters', title: 'Letters: K · T · N', emoji: '🔤', items: ['K', 'T', 'N'] },
+  { id: 'syl-2', type: 'syllables', title: 'Plakken: ka · to · nu', emoji: '🧩', items: ['ka', 'to', 'nu', 'ta'] },
+
+  { id: 'let-5', type: 'letters', title: 'Letters: B · D · R', emoji: '🖍️', items: ['B', 'D', 'R'] },
+  { id: 'syl-3', type: 'syllables', title: 'Plakken: ba · do · re', emoji: '🚗', items: ['ba', 'do', 're', 'bo'] },
+
+  { id: 'let-6', type: 'letters', title: 'Letters: V · W · H', emoji: '📖', items: ['V', 'W', 'H'] },
+  { id: 'syl-4', type: 'syllables', title: 'Plakken: va · wo · ha', emoji: '🎈', items: ['va', 'wo', 'ha', 'we'] },
+
+  { id: 'let-7', type: 'letters', title: 'Letters: G · J · L', emoji: '🎨', items: ['G', 'J', 'L'] },
+  { id: 'syl-5', type: 'syllables', title: 'Plakken: ga · jo · la', emoji: '⭐', items: ['ga', 'jo', 'la', 'lo'] },
+
+  { id: 'let-8', type: 'letters', title: 'Letters: F · Z · C', emoji: '🧸', items: ['F', 'Z', 'C'] },
+  { id: 'let-9', type: 'letters', title: 'Letters: X · Y · Q', emoji: '🌟', items: ['X', 'Y', 'Q'] },
+
+  // ── woorden met plaatjes ──
   {
     id: 'wrd-1', type: 'words', title: 'Woorden: dieren', emoji: '🐱',
     items: [
@@ -110,14 +125,6 @@ export const LESSONS = [
 ]
 
 export const ALL_LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('')
-
-// Nederlandse uitspraak van losse letters (voor tekst-naar-spraak).
-export const LETTER_SOUNDS = {
-  A: 'aa', B: 'bee', C: 'see', D: 'dee', E: 'ee', F: 'ef', G: 'gee',
-  H: 'haa', I: 'ie', J: 'jee', K: 'kaa', L: 'el', M: 'em', N: 'en',
-  O: 'oo', P: 'pee', Q: 'kuu', R: 'er', S: 'es', T: 'tee', U: 'uu',
-  V: 'vee', W: 'wee', X: 'iks', Y: 'griekse ei', Z: 'zet',
-}
 
 // Welke les is nu aan de beurt? Na alle lessen: herhalen (blijft leuk & telt mee).
 export function lessonForIndex(index) {
