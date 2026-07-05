@@ -1,4 +1,4 @@
-import CarSvg from './CarSvg.jsx'
+import CarImage from './CarImage.jsx'
 
 const CONFETTI_COLORS = ['#F95738', '#FFD23F', '#4A90D9', '#7BC950', '#E63946', '#B8B8D1']
 
@@ -27,7 +27,7 @@ export default function Celebration({ car, onDone }) {
       ))}
       <div className="celebration-card">
         <h1>🎉 Nieuwe auto! 🎉</h1>
-        <CarSvg car={car} size={240} className="celebrate-car" />
+        <CarImage car={car} size={240} className="celebrate-car" />
         <div className="celebration-name">{car.name}</div>
         <button className="big-btn play-btn" onClick={onDone}>
           🚗 Geweldig!
