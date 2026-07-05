@@ -72,6 +72,16 @@ button {
   text-shadow: 2px 3px 0 rgba(0, 0, 0, 0.25);
 }
 
+.level-pill {
+  background: #FFF3B0;
+  border: 3px solid #F4A259;
+  border-radius: 999px;
+  padding: 6px 20px;
+  font-size: 1.15rem;
+  font-weight: bold;
+  color: #7a4a12;
+}
+
 .current-car {
   background: #fff;
   border-radius: 24px;
@@ -349,6 +359,22 @@ button {
 }
 
 .garage-slot.locked { background: rgba(255, 255, 255, 0.6); }
+
+.super-header {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #FFD23F;
+  text-shadow: 1px 2px 0 rgba(0, 0, 0, 0.4);
+  letter-spacing: 0.06em;
+  margin-top: 10px;
+}
+
+.super-grid .garage-slot {
+  background: linear-gradient(180deg, #2B2D42, #1a1c2e);
+}
+
+.super-grid .garage-car-name { color: #FFD23F; }
+.super-grid .garage-need { color: #b9bdd6; }
 
 .garage-car-name { font-size: 1.15rem; font-weight: bold; }
 .garage-need { font-size: 0.95rem; color: #777; }
