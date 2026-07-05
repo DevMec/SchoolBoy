@@ -1,0 +1,504 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+html, body {
+  height: 100%;
+}
+
+body {
+  font-family: 'Comic Sans MS', 'Chalkboard SE', 'Segoe UI', system-ui, sans-serif;
+  background: linear-gradient(180deg, #87CEEB 0%, #B8E0F5 55%, #9BD77E 55%, #7BC950 100%);
+  background-attachment: fixed;
+  color: #2B2D42;
+  overflow-x: hidden;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+}
+
+.app {
+  max-width: 640px;
+  margin: 0 auto;
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+.screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding: 16px;
+  gap: 14px;
+}
+
+/* ── Startscherm ── */
+.home-header {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.time-pill {
+  background: #fff;
+  border-radius: 999px;
+  padding: 8px 16px;
+  font-size: 1.2rem;
+  font-weight: bold;
+  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.15);
+}
+
+.admin-link {
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 50%;
+  width: 48px;
+  height: 48px;
+  font-size: 1.4rem;
+}
+
+.home-title {
+  font-size: 2.2rem;
+  color: #fff;
+  text-shadow: 2px 3px 0 rgba(0, 0, 0, 0.25);
+}
+
+.current-car {
+  background: #fff;
+  border-radius: 24px;
+  padding: 18px 26px 10px;
+  box-shadow: 0 6px 0 rgba(0, 0, 0, 0.15);
+  text-align: center;
+}
+
+.car-name {
+  font-size: 1.6rem;
+  font-weight: bold;
+  color: #E76F51;
+}
+
+.bounce {
+  animation: bounce 2.4s ease-in-out infinite;
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+.next-car-panel {
+  background: rgba(255, 255, 255, 0.92);
+  border-radius: 20px;
+  padding: 14px 20px;
+  width: 100%;
+  max-width: 420px;
+  text-align: center;
+}
+
+.next-car-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-size: 1.15rem;
+  font-weight: bold;
+}
+
+.progress-track {
+  background: #E0E0E0;
+  border-radius: 999px;
+  height: 22px;
+  margin: 10px 0 6px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  background: linear-gradient(90deg, #FFD23F, #F95738);
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.6s ease;
+}
+
+.next-hint {
+  font-size: 1.05rem;
+  color: #555;
+}
+
+.all-done {
+  font-size: 1.4rem;
+  font-weight: bold;
+  padding: 22px;
+}
+
+.big-btn {
+  border-radius: 999px;
+  font-size: 1.7rem;
+  font-weight: bold;
+  padding: 18px 44px;
+  color: #fff;
+  box-shadow: 0 5px 0 rgba(0, 0, 0, 0.22);
+  transition: transform 0.1s;
+  min-width: 240px;
+}
+
+.big-btn:active {
+  transform: translateY(4px);
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.22);
+}
+
+.play-btn { background: #F95738; }
+.garage-btn { background: #4A90D9; }
+.nav-btn { background: #4A90D9; min-width: 110px; }
+
+/* ── Les ── */
+.lesson-header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.quit-btn {
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 50%;
+  width: 46px;
+  height: 46px;
+  font-size: 1.2rem;
+  flex-shrink: 0;
+}
+
+.lesson-title {
+  font-size: 1.35rem;
+  font-weight: bold;
+  color: #fff;
+  text-shadow: 1px 2px 0 rgba(0, 0, 0, 0.25);
+}
+
+.intro-card {
+  background: #fff;
+  border-radius: 28px;
+  padding: 30px 44px;
+  text-align: center;
+  box-shadow: 0 6px 0 rgba(0, 0, 0, 0.15);
+  margin-top: 10px;
+  cursor: pointer;
+  min-width: 260px;
+}
+
+.intro-image { font-size: 6rem; line-height: 1.2; }
+.intro-letter { font-size: 8rem; font-weight: bold; color: #4A90D9; }
+.intro-word { font-size: 3.4rem; font-weight: bold; color: #4A90D9; letter-spacing: 0.06em; }
+.intro-hint { font-size: 1.1rem; color: #888; margin-top: 8px; }
+
+.intro-nav {
+  display: flex;
+  gap: 14px;
+}
+
+.dots, .quiz-progress {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.55);
+  display: inline-block;
+}
+
+.dot.active { background: #F95738; transform: scale(1.25); }
+.dot.done { background: #7BC950; }
+
+.hear-btn {
+  background: #FFD23F;
+  border-radius: 999px;
+  font-size: 1.9rem;
+  font-weight: bold;
+  padding: 22px 46px;
+  box-shadow: 0 5px 0 rgba(0, 0, 0, 0.2);
+  margin-top: 24px;
+}
+
+.hear-btn:active { transform: translateY(4px); box-shadow: 0 1px 0 rgba(0,0,0,0.2); }
+
+.quiz-prompt {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #fff;
+  text-shadow: 1px 2px 0 rgba(0, 0, 0, 0.25);
+}
+
+.quiz-image {
+  font-size: 7rem;
+  line-height: 1.1;
+  background: #fff;
+  border-radius: 28px;
+  padding: 18px 34px;
+  box-shadow: 0 6px 0 rgba(0, 0, 0, 0.15);
+  cursor: pointer;
+}
+
+.blank-word {
+  display: flex;
+  gap: 6px;
+  font-size: 3rem;
+  font-weight: bold;
+}
+
+.blank-char {
+  background: #fff;
+  border-radius: 12px;
+  min-width: 52px;
+  padding: 4px 8px;
+  text-align: center;
+  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.15);
+}
+
+.blank-char.missing {
+  background: #FFF3B0;
+  border: 3px dashed #F4A259;
+  color: #F95738;
+}
+
+.options {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: 6px;
+}
+
+.option-btn {
+  background: #fff;
+  border-radius: 22px;
+  font-size: 3rem;
+  font-weight: bold;
+  color: #2B2D42;
+  min-width: 96px;
+  min-height: 96px;
+  padding: 10px 22px;
+  box-shadow: 0 5px 0 rgba(0, 0, 0, 0.18);
+  transition: transform 0.1s;
+}
+
+.word-options .option-btn { font-size: 2rem; min-width: 150px; }
+
+.option-btn:active { transform: translateY(4px); box-shadow: 0 1px 0 rgba(0,0,0,0.18); }
+
+.option-btn.wrong {
+  background: #FFCDD2;
+  color: #B71C1C;
+  opacity: 0.6;
+  animation: shake 0.4s;
+}
+
+.option-btn.correct {
+  background: #7BC950;
+  color: #fff;
+  animation: pop 0.4s;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-8px); }
+  75% { transform: translateX(8px); }
+}
+
+@keyframes pop {
+  50% { transform: scale(1.15); }
+}
+
+.praise {
+  font-size: 1.8rem;
+  font-weight: bold;
+  color: #fff;
+  text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.25);
+  animation: pop 0.5s;
+}
+
+/* ── Garage ── */
+.garage-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 14px;
+  width: 100%;
+}
+
+.garage-slot {
+  background: #fff;
+  border-radius: 20px;
+  padding: 14px 10px;
+  text-align: center;
+  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.15);
+  position: relative;
+}
+
+.garage-slot.locked { background: rgba(255, 255, 255, 0.6); }
+
+.garage-car-name { font-size: 1.15rem; font-weight: bold; }
+.garage-need { font-size: 0.95rem; color: #777; }
+.garage-got { position: absolute; top: 8px; right: 10px; font-size: 1.3rem; }
+
+/* ── Geblokkeerd ── */
+.blocked-screen {
+  justify-content: center;
+  text-align: center;
+  color: #fff;
+  text-shadow: 1px 2px 0 rgba(0, 0, 0, 0.25);
+}
+
+.blocked-emoji { font-size: 6rem; }
+.blocked-text { font-size: 1.4rem; line-height: 1.6; }
+.blocked-admin { margin-top: 30px; width: auto; padding: 10px 24px; border-radius: 999px; font-size: 1.1rem; }
+
+/* ── PIN ── */
+.pin-screen { justify-content: flex-start; }
+.pin-hint { color: #fff; font-size: 1.3rem; text-shadow: 1px 2px 0 rgba(0,0,0,0.25); }
+
+.pin-dots { display: flex; gap: 16px; margin: 10px 0; }
+
+.pin-dot {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.5);
+  border: 3px solid #fff;
+}
+
+.pin-dot.filled { background: #2B2D42; }
+.pin-error { animation: shake 0.4s; }
+.pin-wrong { color: #B71C1C; background: #FFCDD2; border-radius: 10px; padding: 6px 14px; font-weight: bold; }
+
+.pin-pad {
+  display: grid;
+  grid-template-columns: repeat(3, 78px);
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.pin-key {
+  background: #fff;
+  border-radius: 50%;
+  width: 78px;
+  height: 78px;
+  font-size: 1.8rem;
+  font-weight: bold;
+  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.18);
+}
+
+.pin-key:active { transform: translateY(3px); box-shadow: 0 1px 0 rgba(0,0,0,0.18); }
+
+/* ── Ouderpaneel ── */
+.admin-screen { align-items: stretch; }
+
+.admin-section {
+  background: #fff;
+  border-radius: 18px;
+  padding: 16px 18px;
+  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.12);
+}
+
+.admin-section h2 { font-size: 1.15rem; margin-bottom: 10px; }
+
+.stat-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 5px 0;
+  font-size: 1.05rem;
+  border-bottom: 1px dashed #eee;
+}
+
+.admin-label { display: block; margin: 10px 0 4px; font-size: 1rem; }
+
+.admin-section input[type='range'] { width: 100%; accent-color: #F95738; height: 34px; }
+
+.admin-buttons { display: flex; flex-direction: column; gap: 10px; margin-top: 12px; }
+
+.admin-btn {
+  background: #4A90D9;
+  color: #fff;
+  border-radius: 12px;
+  padding: 13px 18px;
+  font-size: 1.05rem;
+  font-weight: bold;
+}
+
+.admin-btn:disabled { opacity: 0.4; }
+.danger-btn { background: #E63946; }
+
+.pin-change { display: flex; gap: 10px; }
+
+.pin-change input {
+  flex: 1;
+  border: 2px solid #ddd;
+  border-radius: 12px;
+  padding: 12px;
+  font-size: 1.1rem;
+  font-family: inherit;
+  user-select: text;
+}
+
+/* ── Feest! ── */
+.celebration-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(30, 30, 60, 0.85);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.celebration-card {
+  background: #fff;
+  border-radius: 28px;
+  padding: 28px 34px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  animation: pop 0.5s;
+  max-width: 90vw;
+}
+
+.celebration-card h1 { font-size: 1.9rem; color: #F95738; }
+.celebration-name { font-size: 1.7rem; font-weight: bold; color: #2B2D42; }
+
+.celebrate-car { animation: bounce 1.2s ease-in-out infinite; }
+
+.confetti {
+  position: absolute;
+  top: -20px;
+  border-radius: 3px;
+  animation: fall 2.6s linear infinite;
+}
+
+@keyframes fall {
+  to {
+    transform: translateY(110vh) rotate(720deg);
+  }
+}
+
+/* ── Tablet (10") ── */
+@media (min-width: 700px) {
+  .app { max-width: 760px; }
+  .home-title { font-size: 2.8rem; }
+  .option-btn { font-size: 3.6rem; min-width: 120px; min-height: 120px; }
+  .word-options .option-btn { font-size: 2.4rem; min-width: 190px; }
+  .quiz-image { font-size: 9rem; }
+}
