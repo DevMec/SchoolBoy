@@ -1,5 +1,5 @@
 import { CARS } from '../data/cars.js'
-import CarSvg from './CarSvg.jsx'
+import CarImage from './CarImage.jsx'
 
 export default function GarageScreen({ lessonsCompleted, onBack }) {
   return (
@@ -14,7 +14,7 @@ export default function GarageScreen({ lessonsCompleted, onBack }) {
           const unlocked = lessonsCompleted >= car.lessons
           return (
             <div key={car.id} className={`garage-slot ${unlocked ? 'unlocked' : 'locked'}`}>
-              <CarSvg car={car} size={130} locked={!unlocked} />
+              <CarImage car={car} size="100%" locked={!unlocked} />
               <div className="garage-car-name">{unlocked ? car.name : '???'}</div>
               {!unlocked && (
                 <div className="garage-need">

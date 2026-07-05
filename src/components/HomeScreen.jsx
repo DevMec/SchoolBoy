@@ -1,5 +1,5 @@
 import { currentCar } from '../data/cars.js'
-import CarSvg from './CarSvg.jsx'
+import CarImage from './CarImage.jsx'
 
 function formatTime(seconds) {
   const m = Math.floor(seconds / 60)
@@ -42,7 +42,7 @@ export default function HomeScreen({
       <h1 className="home-title">🚗 Auto Garage</h1>
 
       <div className="current-car" onClick={onOpenGarage}>
-        <CarSvg car={car} size={220} className="bounce" />
+        <CarImage car={car} size={220} className="bounce" />
         <div className="car-name">{car.name}</div>
       </div>
 
@@ -50,7 +50,7 @@ export default function HomeScreen({
         <div className="next-car-panel">
           <div className="next-car-row">
             <span className="next-label">Volgende:</span>
-            <CarSvg car={nextCar} size={70} locked />
+            <CarImage car={nextCar} size={70} locked />
             <span className="next-name">{nextCar.name}</span>
           </div>
           <div className="progress-track">
