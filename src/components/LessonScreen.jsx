@@ -1,6 +1,13 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { ALL_LETTERS } from '../data/content.js'
-import { speak, speakLetter, playCorrect, playWrong } from '../lib/audio.js'
+import {
+  speak,
+  speakLetter,
+  speakBlend,
+  speakSyllable,
+  playCorrect,
+  playWrong,
+} from '../lib/audio.js'
 
 function shuffle(arr) {
   const a = [...arr]
@@ -15,213 +22,251 @@ function pickDistractors(pool, exclude, count) {
   return shuffle(pool.filter((x) => !exclude.includes(x))).slice(0, count)
 }
 
-// Bouw de vragen voor een les
-function buildQuestions(lesson) {
-  const questions = []
+const PRAISE = ['Goed zo!', 'Super!', 'Knap hoor!', 'Heel goed!', 'Top!']
+function praise() {
+  speak(PRAISE[Math.floor(Math.random() * PRAISE.length)], { rate: 0.85 })
+}
+
+/*
+ * Stappen-model: elke les is een rijtje stappen dat tijdens de les kan
+ * groeien (adaptief).
+ *  - { kind: 'learn-letter', letter }          uitlegkaart: dit is de letter X
+ *  - { kind: 'quiz-letter', letter, placement } hoor de letter, tik hem aan
+ *  - { kind: 'learn-syllable', syl }           uitlegkaart: b + a = ba
+ *  - { kind: 'quiz-syllable', syl }            hoor "ba", tik hem aan
+ *  - { kind: 'intro-word', item }              kijk & luister: woord + plaatje
+ *  - { kind: 'quiz-word', item }               welk woord hoort bij het plaatje
+ *  - { kind: 'quiz-blank', item }              welke letter mist er
+ *
+ * Letters starten met een korte check (placement): in één keer goed = letter
+ * gekend, klaar. Fout = uitlegkaart + extra herhaling achteraan.
+ */
+function initialSteps(lesson, knownLetters) {
   if (lesson.type === 'letters') {
-    // 2 rondes over de letters van deze les
-    for (let round = 0; round < 2; round++) {
-      for (const letter of shuffle(lesson.items)) {
-        questions.push({
-          kind: 'tap-letter',
-          target: letter,
-          options: shuffle([letter, ...pickDistractors(ALL_LETTERS, [letter], 2)]),
-        })
-      }
-    }
-  } else {
-    // woorden: afwisselend "tik het woord" en "vul de letter in"
-    const words = shuffle(lesson.items)
-    words.forEach((item, i) => {
-      if (i % 2 === 0) {
-        const others = pickDistractors(
-          lesson.items.map((w) => w.word),
-          [item.word],
-          2
-        )
-        questions.push({
-          kind: 'tap-word',
-          target: item.word,
-          image: item.image,
-          options: shuffle([item.word, ...others]),
-        })
-      } else {
-        const pos = Math.floor(Math.random() * item.word.length)
-        const missing = item.word[pos].toUpperCase()
-        questions.push({
-          kind: 'fill-blank',
-          target: missing,
-          word: item.word,
-          pos,
-          image: item.image,
-          options: shuffle([missing, ...pickDistractors(ALL_LETTERS, [missing], 2)]),
-        })
-      }
-    })
-    // nog 2 extra tik-vragen zodat elke les ~6 vragen heeft
-    for (const item of shuffle(lesson.items).slice(0, 2)) {
-      const others = pickDistractors(
-        lesson.items.map((w) => w.word),
-        [item.word],
-        2
-      )
-      questions.push({
-        kind: 'tap-word',
-        target: item.word,
-        image: item.image,
-        options: shuffle([item.word, ...others]),
-      })
-    }
+    // Al gekende letters maar één keer kort herhalen, de rest checken we ook —
+    // maar elke letter begint gewoon met een vraag (geen les vooraf).
+    return shuffle(lesson.items).map((letter) => ({
+      kind: 'quiz-letter',
+      letter,
+      placement: true,
+      known: knownLetters.includes(letter),
+    }))
   }
-  return questions
+
+  if (lesson.type === 'syllables') {
+    const steps = []
+    for (const syl of lesson.items.slice(0, 2)) steps.push({ kind: 'learn-syllable', syl })
+    for (const syl of shuffle(lesson.items)) steps.push({ kind: 'quiz-syllable', syl })
+    return steps
+  }
+
+  // words
+  const steps = lesson.items.map((item) => ({ kind: 'intro-word', item }))
+  shuffle(lesson.items).forEach((item, i) => {
+    steps.push(i % 2 === 0 ? { kind: 'quiz-word', item } : { kind: 'quiz-blank', item })
+  })
+  for (const item of shuffle(lesson.items).slice(0, 2)) steps.push({ kind: 'quiz-word', item })
+  return steps
 }
 
-function speakPrompt(q) {
-  if (q.kind === 'tap-letter') speak(`Tik op de letter ... `)
-  if (q.kind === 'tap-word') speak(`Tik op het woord ${q.target}`)
-  if (q.kind === 'fill-blank') speak(`Welke letter mist er in ${q.word}?`)
+// Opties voor een quizstap
+function buildOptions(step, lesson) {
+  if (step.kind === 'quiz-letter') {
+    return shuffle([step.letter, ...pickDistractors(ALL_LETTERS, [step.letter], 2)])
+  }
+  if (step.kind === 'quiz-syllable') {
+    return shuffle([step.syl, ...pickDistractors(lesson.items, [step.syl], 2)])
+  }
+  if (step.kind === 'quiz-word') {
+    const words = lesson.items.map((w) => w.word)
+    return shuffle([step.item.word, ...pickDistractors(words, [step.item.word], 2)])
+  }
+  if (step.kind === 'quiz-blank') {
+    const pos = step.pos
+    const missing = step.item.word[pos].toUpperCase()
+    return shuffle([missing, ...pickDistractors(ALL_LETTERS, [missing], 2)])
+  }
+  return []
 }
 
-export default function LessonScreen({ lesson, onComplete, onQuit }) {
-  const [phase, setPhase] = useState('intro') // intro | quiz
-  const [introIndex, setIntroIndex] = useState(0)
-  const questions = useMemo(() => buildQuestions(lesson), [lesson])
-  const [qIndex, setQIndex] = useState(0)
+export default function LessonScreen({ lesson, knownLetters, onLetterKnown, onComplete, onQuit }) {
+  const [steps, setSteps] = useState(() => {
+    const s = initialSteps(lesson, knownLetters)
+    // vul quiz-blank posities alvast in
+    return s.map((st) =>
+      st.kind === 'quiz-blank'
+        ? { ...st, pos: Math.floor(Math.random() * st.item.word.length) }
+        : st
+    )
+  })
+  const [idx, setIdx] = useState(0)
   const [wrongPicks, setWrongPicks] = useState([])
   const [solved, setSolved] = useState(false)
+  const madeErrorRef = useRef(false)
 
-  const q = questions[qIndex]
+  const step = steps[idx]
+  const options = useMemo(
+    () => (step ? buildOptions(step, lesson) : []),
+    // nieuwe opties per stap
+    [idx, steps.length] // eslint-disable-line react-hooks/exhaustive-deps
+  )
 
-  // Spreek de opdracht uit bij elke nieuwe vraag
+  const totalQuiz = steps.length
+
+  // Spreek de opdracht uit bij elke nieuwe stap
   useEffect(() => {
-    if (phase !== 'quiz' || !q) return
+    if (!step) return
     const t = setTimeout(() => {
-      if (q.kind === 'tap-letter') {
-        speak('Tik op de letter')
-        setTimeout(() => speakLetter(q.target), 1100)
-      } else {
-        speakPrompt(q)
-      }
-    }, 300)
+      if (step.kind === 'quiz-letter') speakLetter(step.letter)
+      if (step.kind === 'quiz-syllable') speakSyllable(step.syl)
+      if (step.kind === 'quiz-word') speak(step.item.word, { rate: 0.6 })
+      if (step.kind === 'quiz-blank') speak(step.item.word, { rate: 0.6 })
+      if (step.kind === 'learn-letter') speakLetter(step.letter)
+      if (step.kind === 'learn-syllable') speakBlend(step.syl)
+      if (step.kind === 'intro-word') speak(step.item.word, { rate: 0.6 })
+    }, 350)
     return () => clearTimeout(t)
-  }, [phase, qIndex]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [idx]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // ── Intro: items één voor één bekijken en beluisteren ──
-  if (phase === 'intro') {
-    const isLetters = lesson.type === 'letters'
-    const items = lesson.items
-    const item = items[introIndex]
-    const label = isLetters ? item : item.word
-    const image = isLetters ? null : item.image
+  if (!step) return null
 
-    return (
-      <div className="screen lesson-screen">
-        <header className="lesson-header">
-          <button className="quit-btn" onClick={onQuit} aria-label="Stoppen">✖️</button>
-          <div className="lesson-title">{lesson.emoji} {lesson.title}</div>
-        </header>
-
-        <div
-          className="intro-card"
-          onClick={() => (isLetters ? speakLetter(item) : speak(item.word))}
-        >
-          {image && <div className="intro-image">{image}</div>}
-          <div className={isLetters ? 'intro-letter' : 'intro-word'}>{label}</div>
-          <div className="intro-hint">🔊 Tik om te horen</div>
-        </div>
-
-        <div className="intro-nav">
-          {introIndex > 0 && (
-            <button className="big-btn nav-btn" onClick={() => setIntroIndex(introIndex - 1)}>
-              ⬅️
-            </button>
-          )}
-          {introIndex < items.length - 1 ? (
-            <button className="big-btn nav-btn next" onClick={() => setIntroIndex(introIndex + 1)}>
-              ➡️
-            </button>
-          ) : (
-            <button
-              className="big-btn play-btn"
-              onClick={() => {
-                setPhase('quiz')
-              }}
-            >
-              🎮 Start!
-            </button>
-          )}
-        </div>
-
-        <div className="dots">
-          {items.map((_, i) => (
-            <span key={i} className={`dot ${i === introIndex ? 'active' : ''}`} />
-          ))}
-        </div>
-      </div>
-    )
+  function goNext(extraSteps = null) {
+    const nextSteps = extraSteps || steps
+    if (idx + 1 >= nextSteps.length) {
+      onComplete()
+      return
+    }
+    if (extraSteps) setSteps(extraSteps)
+    setIdx(idx + 1)
+    setWrongPicks([])
+    setSolved(false)
+    madeErrorRef.current = false
   }
 
-  // ── Quiz ──
+  function target() {
+    if (step.kind === 'quiz-letter') return step.letter
+    if (step.kind === 'quiz-syllable') return step.syl
+    if (step.kind === 'quiz-word') return step.item.word
+    if (step.kind === 'quiz-blank') return step.item.word[step.pos].toUpperCase()
+    return null
+  }
+
   function pick(option) {
     if (solved) return
-    if (option === q.target) {
+    if (option === target()) {
       setSolved(true)
       playCorrect()
-      const praise = ['Goed zo!', 'Super!', 'Knap hoor!', 'Heel goed!', 'Top!']
-      speak(praise[Math.floor(Math.random() * praise.length)])
-      setTimeout(() => {
-        if (qIndex + 1 >= questions.length) {
-          onComplete()
+      praise()
+
+      let nextSteps = steps
+      if (step.kind === 'quiz-letter' && step.placement) {
+        if (!madeErrorRef.current) {
+          // In één keer goed: deze letter is gekend — niet meer oefenen.
+          onLetterKnown(step.letter)
         } else {
-          setQIndex(qIndex + 1)
-          setWrongPicks([])
-          setSolved(false)
+          // Fout gehad: uitlegkaart direct erna + extra vraag aan het eind.
+          nextSteps = [...steps]
+          nextSteps.splice(idx + 1, 0, { kind: 'learn-letter', letter: step.letter })
+          nextSteps.push({ kind: 'quiz-letter', letter: step.letter, placement: false })
         }
-      }, 1200)
+      }
+      setTimeout(() => goNext(nextSteps), 1100)
     } else {
+      madeErrorRef.current = true
       playWrong()
       setWrongPicks((w) => [...w, option])
-      speak('Probeer nog een keer!')
+      speak('Probeer nog een keer!', { rate: 0.85 })
     }
   }
+
+  const isQuiz = step.kind.startsWith('quiz')
 
   return (
     <div className="screen lesson-screen">
       <header className="lesson-header">
         <button className="quit-btn" onClick={onQuit} aria-label="Stoppen">✖️</button>
         <div className="quiz-progress">
-          {questions.map((_, i) => (
-            <span
-              key={i}
-              className={`dot ${i < qIndex ? 'done' : i === qIndex ? 'active' : ''}`}
-            />
+          {steps.map((_, i) => (
+            <span key={i} className={`dot ${i < idx ? 'done' : i === idx ? 'active' : ''}`} />
           ))}
         </div>
       </header>
 
-      {q.kind === 'tap-letter' && (
+      {/* ── Uitlegkaarten ── */}
+      {step.kind === 'learn-letter' && (
         <>
-          <button className="hear-btn" onClick={() => speakLetter(q.target)}>
-            🔊 Luister
-          </button>
-          <div className="quiz-prompt">Tik op de letter!</div>
+          <div className="intro-card" onClick={() => speakLetter(step.letter)}>
+            <div className="intro-letter">{step.letter}</div>
+            <div className="intro-hint">🔊 Tik om te horen</div>
+          </div>
+          <button className="big-btn play-btn" onClick={() => goNext()}>✔️ Verder</button>
         </>
       )}
 
-      {q.kind === 'tap-word' && (
+      {step.kind === 'learn-syllable' && (
         <>
-          <div className="quiz-image" onClick={() => speak(q.target)}>{q.image}</div>
+          <div className="intro-card" onClick={() => speakBlend(step.syl)}>
+            <div className="blend-row">
+              <span className="blend-letter">{step.syl[0].toUpperCase()}</span>
+              <span className="blend-plus">+</span>
+              <span className="blend-letter">{step.syl[1].toUpperCase()}</span>
+              <span className="blend-plus">=</span>
+              <span className="blend-result">{step.syl}</span>
+            </div>
+            <div className="intro-hint">🔊 Tik om te horen</div>
+          </div>
+          <button className="big-btn play-btn" onClick={() => goNext()}>✔️ Verder</button>
+        </>
+      )}
+
+      {step.kind === 'intro-word' && (
+        <>
+          <div className="intro-card" onClick={() => speak(step.item.word, { rate: 0.6 })}>
+            <div className="intro-image">{step.item.image}</div>
+            <div className="intro-word">{step.item.word}</div>
+            <div className="intro-hint">🔊 Tik om te horen</div>
+          </div>
+          <button className="big-btn play-btn" onClick={() => goNext()}>✔️ Verder</button>
+        </>
+      )}
+
+      {/* ── Quizstappen ── */}
+      {step.kind === 'quiz-letter' && (
+        <>
+          <button className="hear-btn" onClick={() => speakLetter(step.letter)}>
+            🔊 Luister
+          </button>
+          <div className="quiz-prompt">Welke letter hoor je?</div>
+        </>
+      )}
+
+      {step.kind === 'quiz-syllable' && (
+        <>
+          <button className="hear-btn" onClick={() => speakSyllable(step.syl)}>
+            🔊 Luister
+          </button>
+          <div className="quiz-prompt">Wat hoor je? Plak de klanken!</div>
+        </>
+      )}
+
+      {step.kind === 'quiz-word' && (
+        <>
+          <div className="quiz-image" onClick={() => speak(step.item.word, { rate: 0.6 })}>
+            {step.item.image}
+          </div>
           <div className="quiz-prompt">Welk woord is dit?</div>
         </>
       )}
 
-      {q.kind === 'fill-blank' && (
+      {step.kind === 'quiz-blank' && (
         <>
-          <div className="quiz-image" onClick={() => speak(q.word)}>{q.image}</div>
+          <div className="quiz-image" onClick={() => speak(step.item.word, { rate: 0.6 })}>
+            {step.item.image}
+          </div>
           <div className="blank-word">
-            {q.word.split('').map((ch, i) => (
-              <span key={i} className={`blank-char ${i === q.pos ? 'missing' : ''}`}>
-                {i === q.pos ? (solved ? ch : '_') : ch}
+            {step.item.word.split('').map((ch, i) => (
+              <span key={i} className={`blank-char ${i === step.pos ? 'missing' : ''}`}>
+                {i === step.pos ? (solved ? ch : '_') : ch}
               </span>
             ))}
           </div>
@@ -229,22 +274,24 @@ export default function LessonScreen({ lesson, onComplete, onQuit }) {
         </>
       )}
 
-      <div className={`options ${q.kind === 'tap-word' ? 'word-options' : ''}`}>
-        {q.options.map((option) => {
-          const wrong = wrongPicks.includes(option)
-          const correct = solved && option === q.target
-          return (
-            <button
-              key={option}
-              className={`option-btn ${wrong ? 'wrong' : ''} ${correct ? 'correct' : ''}`}
-              disabled={wrong}
-              onClick={() => pick(option)}
-            >
-              {option}
-            </button>
-          )
-        })}
-      </div>
+      {isQuiz && (
+        <div className={`options ${step.kind === 'quiz-word' ? 'word-options' : ''}`}>
+          {options.map((option) => {
+            const wrong = wrongPicks.includes(option)
+            const correct = solved && option === target()
+            return (
+              <button
+                key={option}
+                className={`option-btn ${wrong ? 'wrong' : ''} ${correct ? 'correct' : ''}`}
+                disabled={wrong}
+                onClick={() => pick(option)}
+              >
+                {option}
+              </button>
+            )
+          })}
+        </div>
+      )}
 
       {solved && <div className="praise">🌟 Goed zo! 🌟</div>}
     </div>

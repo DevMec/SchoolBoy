@@ -79,6 +79,20 @@ export default function App() {
     setScreen('home')
   }
 
+  function handleLetterKnown(letter) {
+    setState((s) =>
+      s.progress.knownLetters.includes(letter)
+        ? s
+        : {
+            ...s,
+            progress: {
+              ...s.progress,
+              knownLetters: [...s.progress.knownLetters, letter],
+            },
+          }
+    )
+  }
+
   function updateSettings(patch) {
     setState((s) => ({ ...s, settings: { ...s.settings, ...patch } }))
   }
@@ -124,7 +138,10 @@ export default function App() {
         />
       ) : screen === 'lesson' ? (
         <LessonScreen
+          key={state.progress.lessonsCompleted}
           lesson={lessonForIndex(state.progress.lessonsCompleted)}
+          knownLetters={state.progress.knownLetters || []}
+          onLetterKnown={handleLetterKnown}
           onComplete={handleLessonComplete}
           onQuit={() => setScreen('home')}
         />
