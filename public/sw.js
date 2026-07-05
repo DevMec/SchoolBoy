@@ -1,6 +1,7 @@
-// Simpele offline-cache: alles wat geladen wordt, wordt bewaard.
-// Daarna werkt de app ook zonder internet.
-const CACHE = 'schoolboy-v1'
+// Offline-cache v2:
+//  - HTML (navigatie): eerst netwerk, cache als reserve → updates komen altijd door
+//  - overige bestanden (js/css/afbeeldingen, met hash in de naam): cache eerst
+const CACHE = 'schoolboy-v2'
 
 self.addEventListener('install', (event) => {
   event.waitUntil(caches.open(CACHE).then((c) => c.addAll(['./'])))
@@ -17,15 +18,32 @@ self.addEventListener('activate', (event) => {
 })
 
 self.addEventListener('fetch', (event) => {
-  if (event.request.method !== 'GET') return
+  const req = event.request
+  if (req.method !== 'GET' || !req.url.startsWith(self.location.origin)) return
+
+  // HTML: netwerk eerst, zodat een nieuwe versie meteen zichtbaar is
+  if (req.mode === 'navigate' || req.destination === 'document') {
+    event.respondWith(
+      fetch(req)
+        .then((response) => {
+          const copy = response.clone()
+          caches.open(CACHE).then((c) => c.put(req, copy))
+          return response
+        })
+        .catch(() => caches.match(req).then((m) => m || caches.match('./')))
+    )
+    return
+  }
+
+  // Assets: cache eerst (bestandsnamen bevatten een hash, dus altijd juist)
   event.respondWith(
-    caches.match(event.request).then(
+    caches.match(req).then(
       (cached) =>
         cached ||
-        fetch(event.request).then((response) => {
-          if (response.ok && event.request.url.startsWith(self.location.origin)) {
+        fetch(req).then((response) => {
+          if (response.ok) {
             const copy = response.clone()
-            caches.open(CACHE).then((c) => c.put(event.request, copy))
+            caches.open(CACHE).then((c) => c.put(req, copy))
           }
           return response
         })
