@@ -1,4 +1,5 @@
 import { currentCar } from '../data/cars.js'
+import { levelFor } from '../data/content.js'
 import CarImage from './CarImage.jsx'
 
 function formatTime(seconds) {
@@ -40,6 +41,14 @@ export default function HomeScreen({
       </header>
 
       <h1 className="home-title">🚗 Auto Garage</h1>
+      {(() => {
+        const level = levelFor(lessonsCompleted)
+        return (
+          <div className="level-pill">
+            {level.emoji} Niveau {level.nr} · {level.name}
+          </div>
+        )
+      })()}
 
       <div className="current-car" onClick={onOpenGarage}>
         <CarImage car={car} size={220} className="bounce" />

@@ -8,28 +8,25 @@
 //  - 'words':     woorden met plaatje (hoor het woord, tik het / vul de letter in)
 
 export const LESSONS = [
-  // ── klinkers eerst ──
+  // ══ NIVEAU 1: eerst alle letters leren ══
   { id: 'let-1', type: 'letters', title: 'Letters: A · O · E', emoji: '🅰️', items: ['A', 'O', 'E'] },
   { id: 'let-2', type: 'letters', title: 'Letters: I · U', emoji: '✏️', items: ['I', 'U', 'A'] },
-
-  // ── medeklinkers in groepjes, meteen gevolgd door plakken ──
   { id: 'let-3', type: 'letters', title: 'Letters: M · P · S', emoji: '📚', items: ['M', 'P', 'S'] },
-  { id: 'syl-1', type: 'syllables', title: 'Plakken: ma · po · sa', emoji: '🧲', items: ['ma', 'po', 'sa', 'mo'] },
-
   { id: 'let-4', type: 'letters', title: 'Letters: K · T · N', emoji: '🔤', items: ['K', 'T', 'N'] },
-  { id: 'syl-2', type: 'syllables', title: 'Plakken: ka · to · nu', emoji: '🧩', items: ['ka', 'to', 'nu', 'ta'] },
-
   { id: 'let-5', type: 'letters', title: 'Letters: B · D · R', emoji: '🖍️', items: ['B', 'D', 'R'] },
-  { id: 'syl-3', type: 'syllables', title: 'Plakken: ba · do · re', emoji: '🚗', items: ['ba', 'do', 're', 'bo'] },
-
   { id: 'let-6', type: 'letters', title: 'Letters: V · W · H', emoji: '📖', items: ['V', 'W', 'H'] },
-  { id: 'syl-4', type: 'syllables', title: 'Plakken: va · wo · ha', emoji: '🎈', items: ['va', 'wo', 'ha', 'we'] },
-
   { id: 'let-7', type: 'letters', title: 'Letters: G · J · L', emoji: '🎨', items: ['G', 'J', 'L'] },
-  { id: 'syl-5', type: 'syllables', title: 'Plakken: ga · jo · la', emoji: '⭐', items: ['ga', 'jo', 'la', 'lo'] },
-
   { id: 'let-8', type: 'letters', title: 'Letters: F · Z · C', emoji: '🧸', items: ['F', 'Z', 'C'] },
   { id: 'let-9', type: 'letters', title: 'Letters: X · Y · Q', emoji: '🌟', items: ['X', 'Y', 'Q'] },
+
+  // ══ NIVEAU 2: klanken plakken (b + a = ba) ══
+  { id: 'syl-1', type: 'syllables', title: 'Plakken: ma · po · sa', emoji: '🧲', items: ['ma', 'po', 'sa', 'mo'] },
+  { id: 'syl-2', type: 'syllables', title: 'Plakken: ka · to · nu', emoji: '🧩', items: ['ka', 'to', 'nu', 'ta'] },
+  { id: 'syl-3', type: 'syllables', title: 'Plakken: ba · do · re', emoji: '🚗', items: ['ba', 'do', 're', 'bo'] },
+  { id: 'syl-4', type: 'syllables', title: 'Plakken: va · wo · ha', emoji: '🎈', items: ['va', 'wo', 'ha', 'we'] },
+  { id: 'syl-5', type: 'syllables', title: 'Plakken: ga · jo · la', emoji: '⭐', items: ['ga', 'jo', 'la', 'lo'] },
+
+  // ══ NIVEAU 3: woorden lezen ══
 
   // ── woorden met plaatjes ──
   {
@@ -125,6 +122,20 @@ export const LESSONS = [
 ]
 
 export const ALL_LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('')
+
+// ── Niveaus ──
+// Niveau 1: lessen 0-8 (letters), niveau 2: 9-13 (plakken),
+// niveau 3: 14-23 (woorden), daarna: kampioen (herhalen + super auto's).
+export const LEVELS = [
+  { nr: 1, name: 'Letters', emoji: '🔤', endAt: 9 },
+  { nr: 2, name: 'Plakken', emoji: '🧲', endAt: 14 },
+  { nr: 3, name: 'Woorden', emoji: '📖', endAt: 24 },
+  { nr: 4, name: 'Kampioen', emoji: '🏆', endAt: Infinity },
+]
+
+export function levelFor(lessonsCompleted) {
+  return LEVELS.find((l) => lessonsCompleted < l.endAt) || LEVELS[LEVELS.length - 1]
+}
 
 // Welke les is nu aan de beurt? Na alle lessen: herhalen (blijft leuk & telt mee).
 export function lessonForIndex(index) {
