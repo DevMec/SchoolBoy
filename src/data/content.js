@@ -121,12 +121,15 @@ export const LESSONS = [
     ],
   },
 
-  // ══ NIVEAU 4: speciale klanken — twee letters samen, één klank ══
+  // ══ NIVEAU 3: samengestelde klanken — twee letters samen, één klank ══
   // oe klinkt als "oe" (boek), ij klinkt als "ei", ui/eu zijn eigen klanken.
   { id: 'kmb-1', type: 'syllables', title: 'Samen: oe · ie · aa · ee', emoji: '🔗', items: ['oe', 'ie', 'aa', 'ee'] },
   { id: 'kmb-2', type: 'syllables', title: 'Samen: ij · ui · eu · ou', emoji: '🪄', items: ['ij', 'ui', 'eu', 'ou'] },
+  { id: 'kmb-3', type: 'syllables', title: 'Samen: au · ei · oo · uu', emoji: '🎵', items: ['au', 'ei', 'oo', 'uu'] },
+
+  // ══ NIVEAU 5: moeilijkere woorden (met samengestelde klanken en langer) ══
   {
-    id: 'kmb-3', type: 'words', title: 'Woorden met oe', emoji: '📖',
+    id: 'hrd-1', type: 'words', title: 'Woorden met oe', emoji: '📖',
     items: [
       { word: 'boek', image: '📖' },
       { word: 'broek', image: '👖' },
@@ -135,7 +138,7 @@ export const LESSONS = [
     ],
   },
   {
-    id: 'kmb-4', type: 'words', title: 'Woorden met ij en ui', emoji: '🍦',
+    id: 'hrd-2', type: 'words', title: 'Woorden met ij en ui', emoji: '🍦',
     items: [
       { word: 'ijs', image: '🍦' },
       { word: 'muis', image: '🐭' },
@@ -144,7 +147,7 @@ export const LESSONS = [
     ],
   },
   {
-    id: 'kmb-5', type: 'words', title: 'Moeilijke woorden', emoji: '🚂',
+    id: 'hrd-3', type: 'words', title: 'Moeilijke woorden', emoji: '🚂',
     items: [
       { word: 'trein', image: '🚂' },
       { word: 'kleur', image: '🎨' },
@@ -152,29 +155,58 @@ export const LESSONS = [
       { word: 'zeep', image: '🧼' },
     ],
   },
+  {
+    id: 'hrd-4', type: 'words', title: 'Lange woorden', emoji: '🦋',
+    items: [
+      { word: 'schoen', image: '👟' },
+      { word: 'vogel', image: '🐦' },
+      { word: 'water', image: '💧' },
+      { word: 'vlinder', image: '🦋' },
+    ],
+  },
+  {
+    id: 'hrd-5', type: 'words', title: 'Lange woorden 2', emoji: '🐘',
+    items: [
+      { word: 'olifant', image: '🐘' },
+      { word: 'banaan', image: '🍌' },
+      { word: 'tomaat', image: '🍅' },
+      { word: 'wortel', image: '🥕' },
+    ],
+  },
 ]
 
 export const ALL_LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('')
 
-// ── Niveaus ──
-// Niveau 1: lessen 0-8 (letters), niveau 2: 9-14 (plakken),
-// niveau 3: 15-24 (woorden), niveau 4: 25-29 (speciale klanken),
-// daarna: kampioen (herhalen + super auto's verdienen).
+// ── Niveaus op basis van beheersing ──
+// Je gaat pas naar het volgende niveau als elke les van het niveau één keer
+// FOUTLOOS is gemaakt ('gemeesterd'). Fouten? Dan komt die les later terug.
+// Zo blijft een kind vanzelf langer oefenen, of gaat snel door als het al kan.
 export const LEVELS = [
-  { nr: 1, name: 'Letters', emoji: '🔤', endAt: 9 },
-  { nr: 2, name: 'Plakken', emoji: '🧲', endAt: 15 },
-  { nr: 3, name: 'Woorden', emoji: '📖', endAt: 25 },
-  { nr: 4, name: 'Klanken', emoji: '🪄', endAt: 30 },
-  { nr: 5, name: 'Kampioen', emoji: '🏆', endAt: Infinity },
+  { nr: 1, name: 'Letters', emoji: '🔤', lessons: ['let-1', 'let-2', 'let-3', 'let-4', 'let-5', 'let-6', 'let-7', 'let-8', 'let-9'] },
+  { nr: 2, name: 'Plakken', emoji: '🧲', lessons: ['syl-1', 'syl-2', 'syl-3', 'syl-4', 'syl-5', 'syl-6'] },
+  { nr: 3, name: 'Klanken', emoji: '🪄', lessons: ['kmb-1', 'kmb-2', 'kmb-3'] },
+  { nr: 4, name: 'Woorden', emoji: '📖', lessons: ['wrd-1', 'wrd-2', 'wrd-3', 'wrd-4', 'wrd-5', 'wrd-6', 'wrd-7', 'wrd-8', 'wrd-9', 'wrd-10'] },
+  { nr: 5, name: 'Moeilijke woorden', emoji: '🚀', lessons: ['hrd-1', 'hrd-2', 'hrd-3', 'hrd-4', 'hrd-5'] },
 ]
 
-export function levelFor(lessonsCompleted) {
-  return LEVELS.find((l) => lessonsCompleted < l.endAt) || LEVELS[LEVELS.length - 1]
+export const KAMPIOEN = { nr: 6, name: 'Kampioen', emoji: '🏆', lessons: null }
+
+// Huidig niveau: het eerste niveau met nog niet-gemeesterde lessen.
+export function levelFor(masteredLessons) {
+  return (
+    LEVELS.find((l) => l.lessons.some((id) => !masteredLessons.includes(id))) ||
+    KAMPIOEN
+  )
 }
 
-// Welke les is nu aan de beurt? Na alle lessen: herhalen (blijft leuk & telt mee).
-export function lessonForIndex(index) {
-  if (index < LESSONS.length) return LESSONS[index]
-  // Herhaalronde: wissel af tussen alle lessen
-  return LESSONS[index % LESSONS.length]
+// Welke les is nu aan de beurt? Binnen het niveau wisselen we tussen de
+// nog niet-gemeesterde lessen. Kampioen? Dan alles blijven herhalen.
+export function selectLesson(masteredLessons, lessonsCompleted) {
+  const level = levelFor(masteredLessons)
+  if (!level.lessons) {
+    return LESSONS[lessonsCompleted % LESSONS.length]
+  }
+  const pool = level.lessons.filter((id) => !masteredLessons.includes(id))
+  const id = pool[lessonsCompleted % pool.length]
+  return LESSONS.find((l) => l.id === id) || LESSONS[0]
 }

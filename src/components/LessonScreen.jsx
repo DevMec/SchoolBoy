@@ -109,7 +109,8 @@ export default function LessonScreen({ lesson, knownLetters, onLetterKnown, onCo
   const [solved, setSolved] = useState(false)
   const [listening, setListening] = useState(false)
   const [speakFeedback, setSpeakFeedback] = useState('')
-  const madeErrorRef = useRef(false)
+  const madeErrorRef = useRef(false) // fout in deze stap (voor letterkennis-check)
+  const lessonErrorRef = useRef(false) // fout ergens in de hele les (voor beheersing)
 
   const step = steps[idx]
   const options = useMemo(
@@ -141,7 +142,8 @@ export default function LessonScreen({ lesson, knownLetters, onLetterKnown, onCo
   function goNext(extraSteps = null) {
     const nextSteps = extraSteps || steps
     if (idx + 1 >= nextSteps.length) {
-      onComplete()
+      // foutloos = les gemeesterd (uitspraakoefening telt niet mee)
+      onComplete(!lessonErrorRef.current)
       return
     }
     if (extraSteps) setSteps(extraSteps)
@@ -206,6 +208,7 @@ export default function LessonScreen({ lesson, knownLetters, onLetterKnown, onCo
       setTimeout(() => goNext(nextSteps), 1100)
     } else {
       madeErrorRef.current = true
+      lessonErrorRef.current = true
       playWrong()
       setWrongPicks((w) => [...w, option])
       speak('Probeer nog een keer!', { rate: 0.85 })
