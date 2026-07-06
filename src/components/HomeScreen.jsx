@@ -50,6 +50,29 @@ export default function HomeScreen({
         )
       })()}
 
+      {state.settings.goalMinutes > 0 && (
+        <div className={`goal-panel ${state.today.goalDone ? 'done' : ''}`}>
+          {state.today.goalDone ? (
+            <>🏅 Leerdoel gehaald! Goed gewerkt!</>
+          ) : (
+            <>
+              <span>
+                🎯 Leerdoel: {Math.min(Math.floor(state.today.secondsUsed / 60), state.settings.goalMinutes)} van{' '}
+                {state.settings.goalMinutes} min
+              </span>
+              <div className="goal-track">
+                <div
+                  className="goal-fill"
+                  style={{
+                    width: `${Math.min(100, Math.round((state.today.secondsUsed / (state.settings.goalMinutes * 60)) * 100))}%`,
+                  }}
+                />
+              </div>
+            </>
+          )}
+        </div>
+      )}
+
       <div className="current-car" onClick={onOpenGarage}>
         <CarImage car={car} size={220} className="bounce" />
         <div className="car-brand">{car.brand}</div>

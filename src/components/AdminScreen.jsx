@@ -128,6 +128,22 @@ export default function AdminScreen({
           value={settings.bonusPerLessonMin}
           onChange={(e) => onUpdateSettings({ bonusPerLessonMin: Number(e.target.value) })}
         />
+        <label className="admin-label">
+          Leerdoel per dag: <b>{settings.goalMinutes > 0 ? `${settings.goalMinutes} min` : 'uit'}</b>
+        </label>
+        <input
+          type="range"
+          min="0"
+          max="60"
+          step="5"
+          value={settings.goalMinutes ?? 15}
+          onChange={(e) => onUpdateSettings({ goalMinutes: Number(e.target.value) })}
+        />
+        <p className="admin-note">
+          Tip: zet de tablet vast op deze app (Instellingen → Beveiliging →
+          App vastzetten). Als het leerdoel is gehaald, verschijnt er een
+          grote medaille — dan mag de tablet weer los.
+        </p>
         <div className="admin-buttons">
           <button className="admin-btn" onClick={() => onGrantTime(15)}>➕ 15 min extra vandaag</button>
           <button className="admin-btn" onClick={onResetToday}>🔓 Timer vandaag resetten</button>
