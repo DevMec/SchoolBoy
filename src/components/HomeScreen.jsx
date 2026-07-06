@@ -42,10 +42,15 @@ export default function HomeScreen({
 
       <h1 className="home-title">🚗 Auto Garage</h1>
       {(() => {
-        const level = levelFor(lessonsCompleted)
+        const mastered = state.progress.masteredLessons || []
+        const level = levelFor(mastered)
+        if (!level.lessons) {
+          return <div className="level-pill">🏆 Kampioen!</div>
+        }
+        const done = level.lessons.filter((id) => mastered.includes(id)).length
         return (
           <div className="level-pill">
-            {level.emoji} Niveau {level.nr} · {level.name}
+            {level.emoji} Niveau {level.nr} · {level.name} · {done}/{level.lessons.length} ⭐
           </div>
         )
       })()}

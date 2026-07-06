@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { CARS, unlockedCars } from '../data/cars.js'
+import { LEVELS, levelFor } from '../data/content.js'
 
 function formatDuration(seconds) {
   const h = Math.floor(seconds / 3600)
@@ -7,12 +8,14 @@ function formatDuration(seconds) {
   return h > 0 ? `${h}u ${m}m` : `${m} min`
 }
 
+// Springen naar niveau X = alle lessen van de niveaus ervoor als
+// gemeesterd markeren.
 const LEVEL_JUMPS = [
-  { label: '🔤 Niveau 1 · Letters', lessons: 0 },
-  { label: '🧲 Niveau 2 · Plakken', lessons: 9 },
-  { label: '📖 Niveau 3 · Woorden', lessons: 15 },
-  { label: '🪄 Niveau 4 · Klanken', lessons: 25 },
-  { label: '🏆 Kampioen (alles af)', lessons: 30 },
+  ...LEVELS.map((level, i) => ({
+    label: `${level.emoji} Niveau ${level.nr} · ${level.name}`,
+    mastered: LEVELS.slice(0, i).flatMap((l) => l.lessons),
+  })),
+  { label: '🏆 Kampioen (alles af)', mastered: LEVELS.flatMap((l) => l.lessons) },
 ]
 
 export default function AdminScreen({
@@ -153,15 +156,17 @@ export default function AdminScreen({
       <section className="admin-section">
         <h2>🧪 Niveau kiezen (voor testen)</h2>
         <p className="admin-note">
-          Nu: {progress.lessonsCompleted} lessen afgerond. Spring naar het begin
-          van een niveau om het uit te proberen:
+          Nu: niveau {levelFor(progress.masteredLessons || []).nr} ·{' '}
+          {(progress.masteredLessons || []).length} lessen gemeesterd,{' '}
+          {progress.lessonsCompleted} lessen gedaan. Spring naar het begin van
+          een niveau om het uit te proberen:
         </p>
         <div className="admin-buttons">
           {LEVEL_JUMPS.map((jump) => (
             <button
-              key={jump.lessons}
+              key={jump.label}
               className="admin-btn"
-              onClick={() => onSetProgress(jump.lessons)}
+              onClick={() => onSetProgress(jump.mastered)}
             >
               {jump.label}
             </button>

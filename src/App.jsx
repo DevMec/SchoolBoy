@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { loadState, saveState, todayKey, resetAllProgress } from './lib/storage.js'
 import { CARS, nextCar } from './data/cars.js'
-import { lessonForIndex } from './data/content.js'
+import { selectLesson, levelFor } from './data/content.js'
 import { playFanfare, speak } from './lib/audio.js'
 import HomeScreen from './components/HomeScreen.jsx'
 import LessonScreen from './components/LessonScreen.jsx'
@@ -10,12 +10,15 @@ import AdminScreen from './components/AdminScreen.jsx'
 import BlockedScreen from './components/BlockedScreen.jsx'
 import Celebration from './components/Celebration.jsx'
 import GoalCelebration from './components/GoalCelebration.jsx'
+import LevelUp from './components/LevelUp.jsx'
 
 export default function App() {
   const [state, setState] = useState(loadState)
   const [screen, setScreen] = useState('home') // home | lesson | garage | admin
   const [celebration, setCelebration] = useState(null)
   const [goalCelebration, setGoalCelebration] = useState(false)
+  const [levelUp, setLevelUp] = useState(null)
+  const pendingLevelUpRef = useRef(null)
   const stateRef = useRef(state)
   stateRef.current = state
 
@@ -63,33 +66,76 @@ export default function App() {
     }
   }, [state.today.secondsUsed, goalSeconds]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  function handleLessonComplete() {
+  // De les die nu aan de beurt is (op basis van beheersing)
+  const masteredLessons = state.progress.masteredLessons || []
+  const currentLesson = selectLesson(masteredLessons, state.progress.lessonsCompleted)
+
+  function handleLessonComplete(flawless) {
     setState((s) => {
       const lessonsCompleted = s.progress.lessonsCompleted + 1
+      const prevMastered = s.progress.masteredLessons || []
+      // Foutloos afgerond? Dan is deze les gemeesterd.
+      const newMastered =
+        flawless && !prevMastered.includes(currentLesson.id)
+          ? [...prevMastered, currentLesson.id]
+          : prevMastered
+
       const next = {
         ...s,
-        progress: { ...s.progress, lessonsCompleted },
+        progress: { ...s.progress, lessonsCompleted, masteredLessons: newMastered },
         today: {
           ...s.today,
           lessonsToday: s.today.lessonsToday + 1,
           bonusSeconds: s.today.bonusSeconds + s.settings.bonusPerLessonMin * 60,
         },
       }
+
+      // Niveau omhoog?
+      const before = levelFor(prevMastered)
+      const after = levelFor(newMastered)
+      const leveledUp = after.nr !== before.nr ? after : null
+
       // Nieuwe auto verdiend?
       const earned = CARS.find(
         (c) => lessonsCompleted >= c.lessons && !s.progress.celebratedCars.includes(c.id)
       )
       if (earned) {
         next.progress.celebratedCars = [...s.progress.celebratedCars, earned.id]
+        if (leveledUp) pendingLevelUpRef.current = leveledUp // na de auto vieren
         setTimeout(() => {
           setCelebration(earned)
           playFanfare()
           speak(earned.cheer)
         }, 400)
+      } else if (leveledUp) {
+        setTimeout(() => {
+          setLevelUp(leveledUp)
+          playFanfare()
+          speak(
+            leveledUp.lessons === null
+              ? 'Jij bent een kampioen! Je hebt alle niveaus gehaald!'
+              : `Super! Jij bent nu op niveau ${leveledUp.nr}: ${leveledUp.name}!`
+          )
+        }, 400)
       }
       return next
     })
     setScreen('home')
+  }
+
+  function handleCelebrationDone() {
+    setCelebration(null)
+    if (pendingLevelUpRef.current) {
+      const lvl = pendingLevelUpRef.current
+      pendingLevelUpRef.current = null
+      setLevelUp(lvl)
+      playFanfare()
+      speak(
+        lvl.lessons === null
+          ? 'Jij bent een kampioen! Je hebt alle niveaus gehaald!'
+          : `Super! Jij bent nu op niveau ${lvl.nr}: ${lvl.name}!`
+      )
+    }
   }
 
   function handleLetterKnown(letter) {
@@ -117,15 +163,17 @@ export default function App() {
     }))
   }
 
-  // Voor testen vanuit het ouderpaneel: spring naar een niveau.
-  function setProgressTo(lessons) {
+  // Voor testen vanuit het ouderpaneel: spring naar een niveau door de
+  // eerdere niveaus als gemeesterd te markeren.
+  function setProgressTo(masteredIds) {
     setState((s) => ({
       ...s,
       progress: {
         ...s.progress,
-        lessonsCompleted: lessons,
+        masteredLessons: masteredIds,
+        lessonsCompleted: masteredIds.length,
         // auto's tot hier gelden als al gevierd (geen feestjes-inhaalslag)
-        celebratedCars: CARS.filter((c) => c.lessons <= lessons).map((c) => c.id),
+        celebratedCars: CARS.filter((c) => c.lessons <= masteredIds.length).map((c) => c.id),
       },
     }))
   }
@@ -150,8 +198,9 @@ export default function App() {
   return (
     <div className="app">
       {celebration && (
-        <Celebration car={celebration} onDone={() => setCelebration(null)} />
+        <Celebration car={celebration} onDone={handleCelebrationDone} />
       )}
+      {levelUp && <LevelUp level={levelUp} onDone={() => setLevelUp(null)} />}
       {goalCelebration && (
         <GoalCelebration
           goalMinutes={state.settings.goalMinutes}
@@ -170,8 +219,8 @@ export default function App() {
         />
       ) : screen === 'lesson' ? (
         <LessonScreen
-          key={state.progress.lessonsCompleted}
-          lesson={lessonForIndex(state.progress.lessonsCompleted)}
+          key={`${currentLesson.id}-${state.progress.lessonsCompleted}`}
+          lesson={currentLesson}
           knownLetters={state.progress.knownLetters || []}
           onLetterKnown={handleLetterKnown}
           onComplete={handleLessonComplete}

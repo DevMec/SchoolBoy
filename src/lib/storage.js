@@ -14,6 +14,7 @@ const DEFAULTS = {
     totalSeconds: 0,
     celebratedCars: ['kever'], // starterauto is al gevierd
     knownLetters: [], // letters die hij al kent (in één keer goed beantwoord)
+    masteredLessons: [], // lessen die één keer foutloos zijn gemaakt
   },
   today: {
     date: '', // 'YYYY-MM-DD'
