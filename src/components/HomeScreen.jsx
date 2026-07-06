@@ -52,6 +52,7 @@ export default function HomeScreen({
 
       <div className="current-car" onClick={onOpenGarage}>
         <CarImage car={car} size={220} className="bounce" />
+        <div className="car-brand">{car.brand}</div>
         <div className="car-name">{car.name}</div>
       </div>
 
@@ -60,7 +61,7 @@ export default function HomeScreen({
           <div className="next-car-row">
             <span className="next-label">Volgende:</span>
             <CarImage car={nextCar} size={70} locked />
-            <span className="next-name">{nextCar.name}</span>
+            <span className="next-name">{nextCar.brand} {nextCar.name}</span>
           </div>
           <div className="progress-track">
             <div className="progress-fill" style={{ width: `${progressPct}%` }} />

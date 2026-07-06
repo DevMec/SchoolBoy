@@ -8,6 +8,7 @@ import {
   playCorrect,
   playWrong,
 } from '../lib/audio.js'
+import { canRecognize, listenOnce, matches } from '../lib/recognition.js'
 
 function shuffle(arr) {
   const a = [...arr]
@@ -66,6 +67,10 @@ function initialSteps(lesson, knownLetters) {
     steps.push(i % 2 === 0 ? { kind: 'quiz-word', item } : { kind: 'quiz-blank', item })
   })
   for (const item of shuffle(lesson.items).slice(0, 2)) steps.push({ kind: 'quiz-word', item })
+  // Uitspraakoefening: lees één woord hardop (alleen als de browser het kan)
+  if (canRecognize()) {
+    steps.push({ kind: 'quiz-speak', item: shuffle(lesson.items)[0] })
+  }
   return steps
 }
 
@@ -102,6 +107,8 @@ export default function LessonScreen({ lesson, knownLetters, onLetterKnown, onCo
   const [idx, setIdx] = useState(0)
   const [wrongPicks, setWrongPicks] = useState([])
   const [solved, setSolved] = useState(false)
+  const [listening, setListening] = useState(false)
+  const [speakFeedback, setSpeakFeedback] = useState('')
   const madeErrorRef = useRef(false)
 
   const step = steps[idx]
@@ -121,6 +128,7 @@ export default function LessonScreen({ lesson, knownLetters, onLetterKnown, onCo
       if (step.kind === 'quiz-syllable') speakSyllable(step.syl)
       if (step.kind === 'quiz-word') speak(step.item.word, { rate: 0.6 })
       if (step.kind === 'quiz-blank') speak(step.item.word, { rate: 0.6 })
+      if (step.kind === 'quiz-speak') speak('Lees het woord hardop!')
       if (step.kind === 'learn-letter') speakLetter(step.letter)
       if (step.kind === 'learn-syllable') speakBlend(step.syl)
       if (step.kind === 'intro-word') speak(step.item.word, { rate: 0.6 })
@@ -140,7 +148,32 @@ export default function LessonScreen({ lesson, knownLetters, onLetterKnown, onCo
     setIdx(idx + 1)
     setWrongPicks([])
     setSolved(false)
+    setListening(false)
+    setSpeakFeedback('')
     madeErrorRef.current = false
+  }
+
+  // Uitspraakoefening: luister via de microfoon en vergelijk
+  async function startListening() {
+    if (listening || solved) return
+    setListening(true)
+    setSpeakFeedback('')
+    try {
+      const heard = await listenOnce()
+      if (matches(heard, step.item.word)) {
+        setSolved(true)
+        playCorrect()
+        praise()
+        setTimeout(() => goNext(), 1200)
+      } else {
+        playWrong()
+        setSpeakFeedback(`Ik hoorde "${heard[0]}" — probeer nog eens!`)
+        speak('Bijna! Probeer nog een keer.', { rate: 0.85 })
+      }
+    } catch {
+      setSpeakFeedback('Ik kon je niet horen. Probeer nog eens of ga verder.')
+    }
+    setListening(false)
   }
 
   function target() {
@@ -179,7 +212,7 @@ export default function LessonScreen({ lesson, knownLetters, onLetterKnown, onCo
     }
   }
 
-  const isQuiz = step.kind.startsWith('quiz')
+  const isQuiz = step.kind.startsWith('quiz') && step.kind !== 'quiz-speak'
 
   return (
     <div className="screen lesson-screen">
@@ -255,6 +288,27 @@ export default function LessonScreen({ lesson, knownLetters, onLetterKnown, onCo
             {step.item.image}
           </div>
           <div className="quiz-prompt">Welk woord is dit?</div>
+        </>
+      )}
+
+      {step.kind === 'quiz-speak' && (
+        <>
+          <div className="quiz-image">{step.item.image}</div>
+          <div className="speak-word">{step.item.word}</div>
+          <div className="quiz-prompt">Lees het woord hardop!</div>
+          <button
+            className={`mic-btn ${listening ? 'listening' : ''}`}
+            onClick={startListening}
+            disabled={solved}
+          >
+            🎤 {listening ? 'Ik luister...' : 'Zeg het!'}
+          </button>
+          {speakFeedback && <div className="speak-feedback">{speakFeedback}</div>}
+          {!solved && (
+            <button className="skip-btn" onClick={() => goNext()}>
+              Overslaan ➡️
+            </button>
+          )}
         </>
       )}
 

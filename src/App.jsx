@@ -104,6 +104,19 @@ export default function App() {
     }))
   }
 
+  // Voor testen vanuit het ouderpaneel: spring naar een niveau.
+  function setProgressTo(lessons) {
+    setState((s) => ({
+      ...s,
+      progress: {
+        ...s.progress,
+        lessonsCompleted: lessons,
+        // auto's tot hier gelden als al gevierd (geen feestjes-inhaalslag)
+        celebratedCars: CARS.filter((c) => c.lessons <= lessons).map((c) => c.id),
+      },
+    }))
+  }
+
   function resetToday() {
     setState((s) => ({
       ...s,
@@ -158,6 +171,7 @@ export default function App() {
           onGrantTime={grantExtraTime}
           onResetToday={resetToday}
           onResetAll={handleResetAll}
+          onSetProgress={setProgressTo}
           onBack={() => setScreen('home')}
         />
       )}

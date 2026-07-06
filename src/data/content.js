@@ -19,12 +19,13 @@ export const LESSONS = [
   { id: 'let-8', type: 'letters', title: 'Letters: F · Z · C', emoji: '🧸', items: ['F', 'Z', 'C'] },
   { id: 'let-9', type: 'letters', title: 'Letters: X · Y · Q', emoji: '🌟', items: ['X', 'Y', 'Q'] },
 
-  // ══ NIVEAU 2: klanken plakken (b + a = ba) ══
+  // ══ NIVEAU 2: klanken plakken (b + a = ba, en andersom: i + k = ik) ══
   { id: 'syl-1', type: 'syllables', title: 'Plakken: ma · po · sa', emoji: '🧲', items: ['ma', 'po', 'sa', 'mo'] },
   { id: 'syl-2', type: 'syllables', title: 'Plakken: ka · to · nu', emoji: '🧩', items: ['ka', 'to', 'nu', 'ta'] },
   { id: 'syl-3', type: 'syllables', title: 'Plakken: ba · do · re', emoji: '🚗', items: ['ba', 'do', 're', 'bo'] },
   { id: 'syl-4', type: 'syllables', title: 'Plakken: va · wo · ha', emoji: '🎈', items: ['va', 'wo', 'ha', 'we'] },
   { id: 'syl-5', type: 'syllables', title: 'Plakken: ga · jo · la', emoji: '⭐', items: ['ga', 'jo', 'la', 'lo'] },
+  { id: 'syl-6', type: 'syllables', title: 'Plakken: ik · op · an', emoji: '🎯', items: ['ik', 'op', 'an', 'us'] },
 
   // ══ NIVEAU 3: woorden lezen ══
 
@@ -119,18 +120,52 @@ export const LESSONS = [
       { word: 'eend', image: '🦆' },
     ],
   },
+
+  // ══ NIVEAU 4: speciale klanken — twee letters samen, één klank ══
+  // oe klinkt als "oe" (boek), ij klinkt als "ei", ui/eu zijn eigen klanken.
+  { id: 'kmb-1', type: 'syllables', title: 'Samen: oe · ie · aa · ee', emoji: '🔗', items: ['oe', 'ie', 'aa', 'ee'] },
+  { id: 'kmb-2', type: 'syllables', title: 'Samen: ij · ui · eu · ou', emoji: '🪄', items: ['ij', 'ui', 'eu', 'ou'] },
+  {
+    id: 'kmb-3', type: 'words', title: 'Woorden met oe', emoji: '📖',
+    items: [
+      { word: 'boek', image: '📖' },
+      { word: 'broek', image: '👖' },
+      { word: 'voet', image: '🦶' },
+      { word: 'bloem', image: '🌸' },
+    ],
+  },
+  {
+    id: 'kmb-4', type: 'words', title: 'Woorden met ij en ui', emoji: '🍦',
+    items: [
+      { word: 'ijs', image: '🍦' },
+      { word: 'muis', image: '🐭' },
+      { word: 'ui', image: '🧅' },
+      { word: 'duim', image: '👍' },
+    ],
+  },
+  {
+    id: 'kmb-5', type: 'words', title: 'Moeilijke woorden', emoji: '🚂',
+    items: [
+      { word: 'trein', image: '🚂' },
+      { word: 'kleur', image: '🎨' },
+      { word: 'vuur', image: '🔥' },
+      { word: 'zeep', image: '🧼' },
+    ],
+  },
 ]
 
 export const ALL_LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('')
 
 // ── Niveaus ──
-// Niveau 1: lessen 0-8 (letters), niveau 2: 9-13 (plakken),
-// niveau 3: 14-23 (woorden), daarna: kampioen (herhalen + super auto's).
+// Niveau 1: lessen 0-8 (letters), niveau 2: 9-14 (plakken),
+// niveau 3: 15-24 (woorden), niveau 4: 25-29 (speciale klanken),
+// daarna: kampioen (herhalen + super auto's verdienen).
 export const LEVELS = [
   { nr: 1, name: 'Letters', emoji: '🔤', endAt: 9 },
-  { nr: 2, name: 'Plakken', emoji: '🧲', endAt: 14 },
-  { nr: 3, name: 'Woorden', emoji: '📖', endAt: 24 },
-  { nr: 4, name: 'Kampioen', emoji: '🏆', endAt: Infinity },
+  { nr: 2, name: 'Plakken', emoji: '🧲', endAt: 15 },
+  { nr: 3, name: 'Woorden', emoji: '📖', endAt: 25 },
+  { nr: 4, name: 'Klanken', emoji: '🪄', endAt: 30 },
+  { nr: 5, name: 'Kampioen', emoji: '🏆', endAt: Infinity },
 ]
 
 export function levelFor(lessonsCompleted) {

@@ -333,6 +333,55 @@ button {
   50% { transform: scale(1.15); }
 }
 
+/* ── Uitspraakoefening ── */
+.speak-word {
+  font-size: 3rem;
+  font-weight: bold;
+  color: #2B2D42;
+  background: #fff;
+  border-radius: 18px;
+  padding: 8px 30px;
+  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.15);
+  letter-spacing: 0.08em;
+}
+
+.mic-btn {
+  background: #E63946;
+  color: #fff;
+  border-radius: 999px;
+  font-size: 1.6rem;
+  font-weight: bold;
+  padding: 18px 40px;
+  box-shadow: 0 5px 0 rgba(0, 0, 0, 0.22);
+}
+
+.mic-btn.listening {
+  animation: pulse 1s ease-in-out infinite;
+  background: #7BC950;
+}
+
+@keyframes pulse {
+  50% { transform: scale(1.07); }
+}
+
+.speak-feedback {
+  background: #FFF3B0;
+  border-radius: 12px;
+  padding: 8px 16px;
+  font-size: 1.05rem;
+  max-width: 90vw;
+  text-align: center;
+}
+
+.skip-btn {
+  background: rgba(255, 255, 255, 0.85);
+  border-radius: 999px;
+  padding: 10px 24px;
+  font-size: 1.05rem;
+  font-weight: bold;
+  color: #555;
+}
+
 .praise {
   font-size: 1.8rem;
   font-weight: bold;
@@ -450,6 +499,7 @@ button {
 }
 
 .admin-label { display: block; margin: 10px 0 4px; font-size: 1rem; }
+.admin-note { font-size: 0.95rem; color: #666; margin-bottom: 6px; }
 
 .admin-section input[type='range'] { width: 100%; accent-color: #F95738; height: 34px; }
 

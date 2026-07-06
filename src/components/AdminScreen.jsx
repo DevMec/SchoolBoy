@@ -7,6 +7,14 @@ function formatDuration(seconds) {
   return h > 0 ? `${h}u ${m}m` : `${m} min`
 }
 
+const LEVEL_JUMPS = [
+  { label: '🔤 Niveau 1 · Letters', lessons: 0 },
+  { label: '🧲 Niveau 2 · Plakken', lessons: 9 },
+  { label: '📖 Niveau 3 · Woorden', lessons: 15 },
+  { label: '🪄 Niveau 4 · Klanken', lessons: 25 },
+  { label: '🏆 Kampioen (alles af)', lessons: 30 },
+]
+
 export default function AdminScreen({
   state,
   remainingSeconds,
@@ -14,6 +22,7 @@ export default function AdminScreen({
   onGrantTime,
   onResetToday,
   onResetAll,
+  onSetProgress,
   onBack,
 }) {
   const [entered, setEntered] = useState('')
@@ -122,6 +131,25 @@ export default function AdminScreen({
         <div className="admin-buttons">
           <button className="admin-btn" onClick={() => onGrantTime(15)}>➕ 15 min extra vandaag</button>
           <button className="admin-btn" onClick={onResetToday}>🔓 Timer vandaag resetten</button>
+        </div>
+      </section>
+
+      <section className="admin-section">
+        <h2>🧪 Niveau kiezen (voor testen)</h2>
+        <p className="admin-note">
+          Nu: {progress.lessonsCompleted} lessen afgerond. Spring naar het begin
+          van een niveau om het uit te proberen:
+        </p>
+        <div className="admin-buttons">
+          {LEVEL_JUMPS.map((jump) => (
+            <button
+              key={jump.lessons}
+              className="admin-btn"
+              onClick={() => onSetProgress(jump.lessons)}
+            >
+              {jump.label}
+            </button>
+          ))}
         </div>
       </section>
 

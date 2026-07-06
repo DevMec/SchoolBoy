@@ -45,6 +45,20 @@ export function speakLetter(letter) {
   window.speechSynthesis.speak(utter(letter.toLowerCase(), 0.55))
 }
 
+// Spreekvorm van een lettergreep: letterlijk voorlezen, niet interpreteren.
+// Open lettergrepen (medeklinker + klinker) krijgen de lange klinker
+// uitgeschreven zodat de stem ze als klank leest en niet als woord:
+// "to" → "too", "va" → "vaa", "ti" → "tie" (Nederlandse spellingregels).
+const VOWELS = 'aeiou'
+function syllableSpeechForm(s) {
+  const low = s.toLowerCase()
+  if (low.length === 2 && !VOWELS.includes(low[0]) && VOWELS.includes(low[1])) {
+    const v = low[1]
+    return low[0] + (v === 'i' ? 'ie' : v + v)
+  }
+  return low
+}
+
 // Klanken plakken: "b" ... "a" ... "ba" na elkaar
 export function speakBlend(syllable) {
   if (!window.speechSynthesis) return
@@ -52,13 +66,13 @@ export function speakBlend(syllable) {
   const [first, second] = syllable.split('')
   window.speechSynthesis.speak(utter(first, 0.5))
   window.speechSynthesis.speak(utter(second, 0.5))
-  window.speechSynthesis.speak(utter(syllable, 0.55))
+  window.speechSynthesis.speak(utter(syllableSpeechForm(syllable), 0.55))
 }
 
 export function speakSyllable(syllable) {
   if (!window.speechSynthesis) return
   window.speechSynthesis.cancel()
-  window.speechSynthesis.speak(utter(syllable, 0.55))
+  window.speechSynthesis.speak(utter(syllableSpeechForm(syllable), 0.55))
 }
 
 // ── Vrolijke geluidjes ──

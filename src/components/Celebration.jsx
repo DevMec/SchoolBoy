@@ -28,7 +28,7 @@ export default function Celebration({ car, onDone }) {
       <div className="celebration-card">
         <h1>🎉 Nieuwe auto! 🎉</h1>
         <CarImage car={car} size={240} className="celebrate-car" />
-        <div className="celebration-name">{car.name}</div>
+        <div className="celebration-name">{car.brand} {car.name}</div>
         <button className="big-btn play-btn" onClick={onDone}>
           🚗 Geweldig!
         </button>
