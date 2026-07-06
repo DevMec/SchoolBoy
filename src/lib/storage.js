@@ -7,6 +7,7 @@ const DEFAULTS = {
     pin: '1234',
     dailyLimitMin: 45, // dagelijkse speeltijd in minuten
     bonusPerLessonMin: 10, // extra minuten per afgeronde les
+    goalMinutes: 15, // dagelijks leerdoel in minuten (0 = uit)
   },
   progress: {
     lessonsCompleted: 0,
@@ -19,6 +20,7 @@ const DEFAULTS = {
     secondsUsed: 0,
     bonusSeconds: 0,
     lessonsToday: 0,
+    goalDone: false, // leerdoel van vandaag gehaald (en gevierd)?
   },
 }
 

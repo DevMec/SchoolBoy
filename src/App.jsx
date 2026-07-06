@@ -9,11 +9,13 @@ import GarageScreen from './components/GarageScreen.jsx'
 import AdminScreen from './components/AdminScreen.jsx'
 import BlockedScreen from './components/BlockedScreen.jsx'
 import Celebration from './components/Celebration.jsx'
+import GoalCelebration from './components/GoalCelebration.jsx'
 
 export default function App() {
   const [state, setState] = useState(loadState)
   const [screen, setScreen] = useState('home') // home | lesson | garage | admin
   const [celebration, setCelebration] = useState(null)
+  const [goalCelebration, setGoalCelebration] = useState(false)
   const stateRef = useRef(state)
   stateRef.current = state
 
@@ -37,7 +39,7 @@ export default function App() {
         if (s.today.date !== todayKey()) {
           return {
             ...s,
-            today: { date: todayKey(), secondsUsed: 0, bonusSeconds: 0, lessonsToday: 0 },
+            today: { date: todayKey(), secondsUsed: 0, bonusSeconds: 0, lessonsToday: 0, goalDone: false },
           }
         }
         return {
@@ -49,6 +51,17 @@ export default function App() {
     }, 1000)
     return () => clearInterval(id)
   }, [ticking])
+
+  // Leerdoel van vandaag gehaald? Eén keer per dag groot vieren.
+  const goalSeconds = (state.settings.goalMinutes || 0) * 60
+  useEffect(() => {
+    if (goalSeconds > 0 && !state.today.goalDone && state.today.secondsUsed >= goalSeconds) {
+      setState((s) => ({ ...s, today: { ...s.today, goalDone: true } }))
+      setGoalCelebration(true)
+      playFanfare()
+      speak('Hoera! Je leerdoel is gehaald! Ga het maar aan papa of mama laten zien!')
+    }
+  }, [state.today.secondsUsed, goalSeconds]) // eslint-disable-line react-hooks/exhaustive-deps
 
   function handleLessonComplete() {
     setState((s) => {
@@ -120,7 +133,7 @@ export default function App() {
   function resetToday() {
     setState((s) => ({
       ...s,
-      today: { date: todayKey(), secondsUsed: 0, bonusSeconds: 0, lessonsToday: 0 },
+      today: { date: todayKey(), secondsUsed: 0, bonusSeconds: 0, lessonsToday: 0, goalDone: false },
     }))
   }
 
@@ -138,6 +151,12 @@ export default function App() {
     <div className="app">
       {celebration && (
         <Celebration car={celebration} onDone={() => setCelebration(null)} />
+      )}
+      {goalCelebration && (
+        <GoalCelebration
+          goalMinutes={state.settings.goalMinutes}
+          onDone={() => setGoalCelebration(false)}
+        />
       )}
 
       {isBlocked ? (

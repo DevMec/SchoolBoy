@@ -82,6 +82,41 @@ button {
   color: #7a4a12;
 }
 
+.goal-panel {
+  background: rgba(255, 255, 255, 0.92);
+  border-radius: 16px;
+  padding: 10px 18px;
+  width: 100%;
+  max-width: 420px;
+  text-align: center;
+  font-weight: bold;
+  font-size: 1.05rem;
+}
+
+.goal-panel.done {
+  background: #DCF5CE;
+  border: 3px solid #7BC950;
+  color: #35701c;
+}
+
+.goal-track {
+  background: #E0E0E0;
+  border-radius: 999px;
+  height: 14px;
+  margin-top: 6px;
+  overflow: hidden;
+}
+
+.goal-fill {
+  background: linear-gradient(90deg, #7BC950, #4A90D9);
+  height: 100%;
+  border-radius: 999px;
+  transition: width 1s linear;
+}
+
+.goal-medal { font-size: 4.5rem; line-height: 1.1; }
+.goal-text { font-size: 1.2rem; line-height: 1.6; }
+
 .current-car {
   background: #fff;
   border-radius: 24px;
