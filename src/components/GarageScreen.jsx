@@ -5,7 +5,14 @@ function CarSlot({ car, unlocked, lessonsCompleted }) {
   return (
     <div className={`garage-slot ${unlocked ? 'unlocked' : 'locked'}`}>
       <CarImage car={car} size="100%" locked={!unlocked} />
-      <div className="garage-car-name">{unlocked ? car.name : '???'}</div>
+      {unlocked ? (
+        <>
+          <div className="garage-brand">{car.brand}</div>
+          <div className="garage-car-name">{car.name}</div>
+        </>
+      ) : (
+        <div className="garage-car-name">???</div>
+      )}
       {!unlocked && (
         <div className="garage-need">nog {car.lessons - lessonsCompleted} lessen</div>
       )}
