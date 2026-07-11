@@ -1,0 +1,58 @@
+name: Generate Dutch audio
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  audio:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: List texts
+        run: node scripts/audio-texts.mjs > /tmp/texts.json && head -c 400 /tmp/texts.json
+      - name: Install edge-tts
+        run: pip install edge-tts
+      - name: Generate audio files
+        run: |
+          python3 - <<'EOF'
+          import json, subprocess, os, concurrent.futures
+
+          VOICE = "nl-NL-FennaNeural"
+          texts = json.load(open("/tmp/texts.json"))
+          os.makedirs("public/audio", exist_ok=True)
+
+          def gen(item):
+              out = f"public/audio/{item['key']}.mp3"
+              for attempt in range(3):
+                  r = subprocess.run(
+                      ["edge-tts", "--voice", VOICE, f"--rate={item['rate']}",
+                       "--text", item["text"], "--write-media", out],
+                      capture_output=True,
+                  )
+                  if r.returncode == 0 and os.path.exists(out) and os.path.getsize(out) > 500:
+                      return item["key"]
+              raise RuntimeError(f"kon audio niet maken voor {item['key']}: {r.stderr.decode()[:200]}")
+
+          with concurrent.futures.ThreadPoolExecutor(max_workers=6) as pool:
+              keys = list(pool.map(gen, texts))
+
+          manifest = {k: True for k in keys}
+          with open("src/audio-manifest.json", "w") as f:
+              json.dump(manifest, f, indent=1, sort_keys=True)
+          print(f"{len(keys)} audiobestanden gegenereerd")
+          EOF
+      - name: Commit and push
+        run: |
+          git config user.name "audio-bot"
+          git config user.email "noreply@github.com"
+          git add public/audio src/audio-manifest.json
+          git commit -m "Add generated Dutch audio (nl-NL-FennaNeural)"
+          git push origin main
