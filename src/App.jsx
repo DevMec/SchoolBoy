@@ -11,6 +11,7 @@ import BlockedScreen from './components/BlockedScreen.jsx'
 import Celebration from './components/Celebration.jsx'
 import GoalCelebration from './components/GoalCelebration.jsx'
 import LevelUp from './components/LevelUp.jsx'
+import TryAgain from './components/TryAgain.jsx'
 
 export default function App() {
   const [state, setState] = useState(loadState)
@@ -18,6 +19,8 @@ export default function App() {
   const [celebration, setCelebration] = useState(null)
   const [goalCelebration, setGoalCelebration] = useState(false)
   const [levelUp, setLevelUp] = useState(null)
+  const [tryAgain, setTryAgain] = useState(false)
+  const [attempt, setAttempt] = useState(0) // telt herkansingen van dezelfde les
   const pendingLevelUpRef = useRef(null)
   const stateRef = useRef(state)
   stateRef.current = state
@@ -71,6 +74,13 @@ export default function App() {
   const currentLesson = selectLesson(masteredLessons, state.progress.lessonsCompleted)
 
   function handleLessonComplete(flawless) {
+    // Foutjes gemaakt? Dan telt de les niet: dezelfde les opnieuw oefenen
+    // tot het foutloos lukt (geen auto's, geen bonustijd, geen niveau).
+    if (!flawless) {
+      setTryAgain(true)
+      speak('Bijna goed! We oefenen deze les nog een keer.')
+      return
+    }
     setState((s) => {
       const lessonsCompleted = s.progress.lessonsCompleted + 1
       const prevMastered = s.progress.masteredLessons || []
@@ -201,6 +211,18 @@ export default function App() {
         <Celebration car={celebration} onDone={handleCelebrationDone} />
       )}
       {levelUp && <LevelUp level={levelUp} onDone={() => setLevelUp(null)} />}
+      {tryAgain && (
+        <TryAgain
+          onRetry={() => {
+            setTryAgain(false)
+            setAttempt((a) => a + 1)
+          }}
+          onQuit={() => {
+            setTryAgain(false)
+            setScreen('home')
+          }}
+        />
+      )}
       {goalCelebration && (
         <GoalCelebration
           goalMinutes={state.settings.goalMinutes}
@@ -219,7 +241,7 @@ export default function App() {
         />
       ) : screen === 'lesson' ? (
         <LessonScreen
-          key={`${currentLesson.id}-${state.progress.lessonsCompleted}`}
+          key={`${currentLesson.id}-${state.progress.lessonsCompleted}-${attempt}`}
           lesson={currentLesson}
           knownLetters={state.progress.knownLetters || []}
           onLetterKnown={handleLetterKnown}

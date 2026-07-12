@@ -97,7 +97,7 @@ function tts(text, rate) {
 
 // Spreekvorm van een lettergreep: letterlijk voorlezen, niet interpreteren.
 const VOWELS = 'aeiou'
-function syllableSpeechForm(s) {
+export function syllableSpeechForm(s) {
   const low = s.toLowerCase()
   if (low.length === 2 && !VOWELS.includes(low[0]) && VOWELS.includes(low[1])) {
     const v = low[1]

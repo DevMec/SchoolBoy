@@ -5,10 +5,11 @@ import {
   speakLetter,
   speakBlend,
   speakSyllable,
+  syllableSpeechForm,
   playCorrect,
   playWrong,
 } from '../lib/audio.js'
-import { canRecognize, listenOnce, matches } from '../lib/recognition.js'
+import { canRecognize, listenOnce, matches, LETTER_ALIASES } from '../lib/recognition.js'
 
 function shuffle(arr) {
   const a = [...arr]
@@ -46,18 +47,37 @@ function initialSteps(lesson, knownLetters) {
   if (lesson.type === 'letters') {
     // Al gekende letters maar één keer kort herhalen, de rest checken we ook —
     // maar elke letter begint gewoon met een vraag (geen les vooraf).
-    return shuffle(lesson.items).map((letter) => ({
+    const steps = shuffle(lesson.items).map((letter) => ({
       kind: 'quiz-letter',
       letter,
       placement: true,
       known: knownLetters.includes(letter),
     }))
+    // Hardop lezen: één letter van deze les
+    if (canRecognize()) {
+      const letter = shuffle(lesson.items)[0]
+      steps.push({
+        kind: 'quiz-speak',
+        display: letter,
+        targets: LETTER_ALIASES[letter.toLowerCase()] || [letter],
+      })
+    }
+    return steps
   }
 
   if (lesson.type === 'syllables') {
     const steps = []
     for (const syl of lesson.items.slice(0, 2)) steps.push({ kind: 'learn-syllable', syl })
     for (const syl of shuffle(lesson.items)) steps.push({ kind: 'quiz-syllable', syl })
+    // Hardop lezen: één klank van deze les
+    if (canRecognize()) {
+      const syl = shuffle(lesson.items)[0]
+      steps.push({
+        kind: 'quiz-speak',
+        display: syl,
+        targets: [syl, syllableSpeechForm(syl)],
+      })
+    }
     return steps
   }
 
@@ -67,9 +87,10 @@ function initialSteps(lesson, knownLetters) {
     steps.push(i % 2 === 0 ? { kind: 'quiz-word', item } : { kind: 'quiz-blank', item })
   })
   for (const item of shuffle(lesson.items).slice(0, 2)) steps.push({ kind: 'quiz-word', item })
-  // Uitspraakoefening: lees één woord hardop (alleen als de browser het kan)
+  // Hardop lezen: één woord van deze les
   if (canRecognize()) {
-    steps.push({ kind: 'quiz-speak', item: shuffle(lesson.items)[0] })
+    const item = shuffle(lesson.items)[0]
+    steps.push({ kind: 'quiz-speak', display: item.word, image: item.image, targets: [item.word] })
   }
   return steps
 }
@@ -129,7 +150,7 @@ export default function LessonScreen({ lesson, knownLetters, onLetterKnown, onCo
       if (step.kind === 'quiz-syllable') speakSyllable(step.syl)
       if (step.kind === 'quiz-word') speak(step.item.word, { rate: 0.6 })
       if (step.kind === 'quiz-blank') speak(step.item.word, { rate: 0.6 })
-      if (step.kind === 'quiz-speak') speak('Lees het woord hardop!')
+      if (step.kind === 'quiz-speak') speak('Lees dit hardop!')
       if (step.kind === 'learn-letter') speakLetter(step.letter)
       if (step.kind === 'learn-syllable') speakBlend(step.syl)
       if (step.kind === 'intro-word') speak(step.item.word, { rate: 0.6 })
@@ -162,7 +183,7 @@ export default function LessonScreen({ lesson, knownLetters, onLetterKnown, onCo
     setSpeakFeedback('')
     try {
       const heard = await listenOnce()
-      if (matches(heard, step.item.word)) {
+      if (matches(heard, step.targets)) {
         setSolved(true)
         playCorrect()
         praise()
@@ -296,9 +317,9 @@ export default function LessonScreen({ lesson, knownLetters, onLetterKnown, onCo
 
       {step.kind === 'quiz-speak' && (
         <>
-          <div className="quiz-image">{step.item.image}</div>
-          <div className="speak-word">{step.item.word}</div>
-          <div className="quiz-prompt">Lees het woord hardop!</div>
+          {step.image && <div className="quiz-image">{step.image}</div>}
+          <div className="speak-word">{step.display}</div>
+          <div className="quiz-prompt">Lees dit hardop!</div>
           <button
             className={`mic-btn ${listening ? 'listening' : ''}`}
             onClick={startListening}

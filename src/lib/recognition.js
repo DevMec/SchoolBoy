@@ -60,14 +60,30 @@ export function listenOnce({ timeoutMs = 7000 } = {}) {
   })
 }
 
-// Is het doelwoord (ongeveer) gezegd?
-export function matches(alternatives, target) {
-  const t = target.toLowerCase()
-  return alternatives.some((a) => {
-    if (a.includes(t)) return true
-    // kleine afwijking toestaan (1 letter verschil)
-    return a.split(/\s+/).some((w) => levenshtein(w, t) <= 1)
-  })
+// Hoe kan een letter klinken als het kind hem hardop zegt?
+// (naam, klank en wat de herkenner er vaak van maakt)
+export const LETTER_ALIASES = {
+  a: ['a', 'aa', 'ah', 'ha'], b: ['b', 'be', 'bee'], c: ['c', 'ce', 'cee', 'see'],
+  d: ['d', 'de', 'dee'], e: ['e', 'ee', 'eh'], f: ['f', 'ef', 'effe'],
+  g: ['g', 'ge', 'gee', 'che'], h: ['h', 'ha', 'haa'], i: ['i', 'ie', 'ienie'],
+  j: ['j', 'je', 'jee'], k: ['k', 'ka', 'kaa'], l: ['l', 'el', 'elle'],
+  m: ['m', 'em', 'emme'], n: ['n', 'en', 'enne'], o: ['o', 'oo', 'oh'],
+  p: ['p', 'pe', 'pee'], q: ['q', 'ku', 'kuu'], r: ['r', 'er', 'erre'],
+  s: ['s', 'es', 'esse'], t: ['t', 'te', 'tee', 'thee'], u: ['u', 'uu'],
+  v: ['v', 've', 'vee', 'fee'], w: ['w', 'we', 'wee'], x: ['x', 'iks', 'ix'],
+  y: ['y', 'ypsilon', 'ei'], z: ['z', 'zet', 'said'],
+}
+
+// Is één van de doelvormen (ongeveer) gezegd?
+export function matches(alternatives, targets) {
+  const list = (Array.isArray(targets) ? targets : [targets]).map((t) => t.toLowerCase())
+  return alternatives.some((a) =>
+    list.some((t) => {
+      if (a.includes(t)) return true
+      // kleine afwijking toestaan (1 letter verschil)
+      return a.split(/\s+/).some((w) => levenshtein(w, t) <= 1)
+    })
+  )
 }
 
 function levenshtein(a, b) {

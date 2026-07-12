@@ -31,9 +31,16 @@ function add(key, text, rate) {
   texts.push({ key, text, rate })
 }
 
-// Losse letters (rustig uitgesproken)
-for (const ch of 'abcdefghijklmnopqrstuvwxyz') {
-  add(`l-${ch}`, ch, '-40%')
+// Losse letters: expliciete Nederlandse letternamen, anders leest de stem
+// een kale 'a' of 'e' verkeerd voor (klonk als 'é').
+const LETTER_NAMES = {
+  a: 'aa', b: 'bee', c: 'cee', d: 'dee', e: 'ee', f: 'ef', g: 'gee',
+  h: 'haa', i: 'ie', j: 'jee', k: 'kaa', l: 'el', m: 'em', n: 'en',
+  o: 'oo', p: 'pee', q: 'kuu', r: 'er', s: 'es', t: 'tee', u: 'uu',
+  v: 'vee', w: 'wee', x: 'iks', y: 'ypsilon', z: 'zet',
+}
+for (const [ch, name] of Object.entries(LETTER_NAMES)) {
+  add(`l-${ch}`, name, '-40%')
 }
 
 // Lettergrepen en klankcombinaties uit de lessen
@@ -60,6 +67,8 @@ const PHRASES = [
   'Probeer nog een keer!',
   'Bijna! Probeer nog een keer.',
   'Lees het woord hardop!',
+  'Lees dit hardop!',
+  'Bijna goed! We oefenen deze les nog een keer.',
   'Hoera! Je leerdoel is gehaald! Ga het maar aan papa of mama laten zien!',
   'Jij bent een kampioen! Je hebt alle niveaus gehaald!',
 ]
