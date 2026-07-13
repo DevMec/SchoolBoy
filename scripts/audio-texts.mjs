@@ -39,8 +39,26 @@ const LETTER_NAMES = {
   o: 'oo', p: 'pee', q: 'kuu', r: 'er', s: 'es', t: 'tee', u: 'uu',
   v: 'vee', w: 'wee', x: 'iks', y: 'ypsilon', z: 'zet',
 }
+// Klinker-letters worden door de stem soms Engels gelezen ("ie" → "ey",
+// "oo" → "oe"). Die krijgen kandidaten + een strenge lijst van toegestane
+// transcripties, zodat de workflow de Engelse lezing kan afkeuren.
+const VOWEL_LETTER_CANDIDATES = {
+  a: { candidates: ['aa', 'aah', 'ah'], expect: ['a', 'ah', 'aa'] },
+  e: { candidates: ['ee', 'eeh', 'eh'], expect: ['e', 'eh', 'ee'] },
+  i: { candidates: ['ie.', 'ieh', 'ie', 'iie'], expect: ['i', 'ie', 'ih', 'ih'] },
+  o: { candidates: ['oo', 'oh', 'ooh', 'oo.'], expect: ['o', 'oh', 'oo'] },
+  u: { candidates: ['uu', 'uuh', 'uh', 'uu.'], expect: ['u', 'uh', 'uu'] },
+}
 for (const [ch, name] of Object.entries(LETTER_NAMES)) {
-  add(`l-${ch}`, name, '-40%')
+  const key = `l-${ch}`
+  if (seen.has(key)) continue
+  seen.add(key)
+  const vowel = VOWEL_LETTER_CANDIDATES[ch]
+  if (vowel) {
+    texts.push({ key, candidates: vowel.candidates, target: ch, expect: vowel.expect, rate: '-40%' })
+  } else {
+    texts.push({ key, text: name, rate: '-40%' })
+  }
 }
 
 // Handmatig vastgezette spreekvormen voor koppige clips: als een lettergreep
@@ -64,9 +82,35 @@ for (const lesson of LESSONS) {
         texts.push({ key, text: OVERRIDES[key], rate: '-35%' })
         continue
       }
+      // De stem las "moo"/"poo" op z'n Engels (moe/poe). De vorm met -h
+      // ("moh", "bah" — zoals de echte Nederlandse woordjes joh, goh, bah)
+      // geeft de korte Nederlandse klinker en gaat daarom voorop.
+      // Extra spellingen voor klanken die anders gespeld/misgelezen worden:
+      // ij klinkt als ei, au als ou (die spellingen zijn al goedgekeurd).
+      const EXTRA = {
+        us: ['uhs'],
+        ij: ['ei!', 'ei.'],
+        au: ['ou.', 'ou!'],
+        ee: ['eeh'], uu: ['uuh'], oe: ['oeh'], ie: ['ieh'],
+      }
       const base = syllableSpeechForm(s)
-      const candidates = [...new Set([`${base}.`, base, s, `${s}!`])]
-      texts.push({ key, candidates, target: s, rate: '-35%' })
+      const isCV = !VOWELS.includes(s[0]) && VOWELS.includes(s[1])
+      const candidates = [
+        ...new Set([
+          ...(isCV ? [`${s}h`] : []),
+          ...(EXTRA[s] || []),
+          `${base}.`,
+          base,
+          s,
+          `${s}!`,
+        ]),
+      ]
+      // Toegestane transcripties: de klank zelf, de -h-vorm, en bekende
+      // stemhebbend/stemloos-verwisselingen van de herkenner (ka→ga, va→fa).
+      const SWAP = { k: 'g', g: 'k', v: 'f', f: 'v', b: 'p', p: 'b', d: 't', t: 'd', s: 'z', z: 's' }
+      const expect = [s, `${s}h`, ...(EXTRA[s] || [])]
+      if (isCV && SWAP[s[0]]) expect.push(SWAP[s[0]] + s[1], SWAP[s[0]] + s[1] + 'h')
+      texts.push({ key, candidates, target: s, expect, rate: '-35%' })
     }
   }
   if (lesson.type === 'words') {

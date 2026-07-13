@@ -74,6 +74,7 @@ jobs:
           for item in syllables:
               out = f"public/audio/{item['key']}.mp3"
               target = collapse(item["target"])
+              expect = [collapse(e) for e in item.get("expect", [])]
               best = None
               chosen = None
               for cand in item["candidates"]:
@@ -82,7 +83,11 @@ jobs:
                   norm = collapse(heard)
                   # gespelde clips zijn lang en/of bevatten scheidingstekens
                   spelled = dur > 2.3 or bool(re.search(r"[a-z][\s\.,;\-]+[a-z]", heard.lower()))
-                  ok = (not spelled) and lev(norm, target) <= 1 and len(norm) <= len(target) + 2
+                  if expect:
+                      # strenge lijst: alleen exact toegestane klanken
+                      ok = (not spelled) and norm in expect
+                  else:
+                      ok = (not spelled) and lev(norm, target) <= 1 and len(norm) <= len(target) + 2
                   score = ((0 if ok else 1), lev(norm, target), dur)
                   if best is None or score < best[0]:
                       best = (score, cand, heard, dur)
