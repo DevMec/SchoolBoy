@@ -43,11 +43,30 @@ for (const [ch, name] of Object.entries(LETTER_NAMES)) {
   add(`l-${ch}`, name, '-40%')
 }
 
-// Lettergrepen en klankcombinaties uit de lessen
+// Handmatig vastgezette spreekvormen voor koppige clips: als een lettergreep
+// verkeerd blijft klinken, zet hier de tekst die de stem WEL goed leest.
+const OVERRIDES = {
+  // 's-va': 'vaa',
+}
+
+// Lettergrepen en klankcombinaties uit de lessen.
+// De stem spelt onbekende lettergrepen als afkorting ("maa" → "m, a, a").
+// Daarom krijgen ze meerdere kandidaat-spellingen; de workflow checkt met
+// spraakherkenning (Whisper) welke kandidaat echt als één klank wordt gelezen.
 for (const lesson of LESSONS) {
   if (lesson.type === 'syllables') {
     for (const item of lesson.items) {
-      add(`s-${item.toLowerCase()}`, syllableSpeechForm(item), '-35%')
+      const s = item.toLowerCase()
+      const key = `s-${s}`
+      if (seen.has(key)) continue
+      seen.add(key)
+      if (OVERRIDES[key]) {
+        texts.push({ key, text: OVERRIDES[key], rate: '-35%' })
+        continue
+      }
+      const base = syllableSpeechForm(s)
+      const candidates = [...new Set([`${base}.`, base, s, `${s}!`])]
+      texts.push({ key, candidates, target: s, rate: '-35%' })
     }
   }
   if (lesson.type === 'words') {

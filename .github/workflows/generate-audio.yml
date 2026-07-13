@@ -17,37 +17,93 @@ jobs:
         with:
           node-version: 20
       - name: List texts
-        run: node scripts/audio-texts.mjs > /tmp/texts.json && head -c 400 /tmp/texts.json
-      - name: Install edge-tts
-        run: pip install edge-tts
-      - name: Generate audio files
+        run: node scripts/audio-texts.mjs > /tmp/texts.json && head -c 300 /tmp/texts.json
+      - name: Install edge-tts and whisper
+        run: pip install edge-tts faster-whisper
+      - name: Generate audio files (with pronunciation check for syllables)
         run: |
           python3 - <<'EOF'
-          import json, subprocess, os, concurrent.futures
+          import json, subprocess, os, re, concurrent.futures
 
           VOICE = "nl-NL-FennaNeural"
           texts = json.load(open("/tmp/texts.json"))
           os.makedirs("public/audio", exist_ok=True)
 
-          def gen(item):
-              out = f"public/audio/{item['key']}.mp3"
+          def tts(text, rate, out):
               for attempt in range(3):
                   r = subprocess.run(
-                      ["edge-tts", "--voice", VOICE, f"--rate={item['rate']}",
-                       "--text", item["text"], "--write-media", out],
+                      ["edge-tts", "--voice", VOICE, f"--rate={rate}",
+                       "--text", text, "--write-media", out],
                       capture_output=True,
                   )
                   if r.returncode == 0 and os.path.exists(out) and os.path.getsize(out) > 500:
-                      return item["key"]
-              raise RuntimeError(f"kon audio niet maken voor {item['key']}: {r.stderr.decode()[:200]}")
+                      return
+              raise RuntimeError(f"tts mislukt voor {text!r}: {r.stderr.decode()[:200]}")
 
+          # ── directe clips (letters, woorden, zinnen): parallel ──
+          direct = [t for t in texts if "candidates" not in t]
+          def gen_direct(item):
+              tts(item["text"], item["rate"], f"public/audio/{item['key']}.mp3")
+              return item["key"]
           with concurrent.futures.ThreadPoolExecutor(max_workers=6) as pool:
-              keys = list(pool.map(gen, texts))
+              direct_keys = list(pool.map(gen_direct, direct))
 
-          manifest = {k: True for k in keys}
+          # ── lettergrepen: kandidaten proberen + verifiëren met Whisper ──
+          from faster_whisper import WhisperModel
+          model = WhisperModel("small", device="cpu", compute_type="int8")
+
+          def transcribe(path):
+              segments, info = model.transcribe(path, language="nl", beam_size=1)
+              text = " ".join(s.text for s in segments).strip()
+              return text, info.duration
+
+          def collapse(t):
+              letters = re.sub(r"[^a-z]", "", t.lower())
+              return re.sub(r"(.)\1+", r"\1", letters)
+
+          def lev(a, b):
+              dp = list(range(len(b) + 1))
+              for i, ca in enumerate(a, 1):
+                  prev, dp[0] = dp[0], i
+                  for j, cb in enumerate(b, 1):
+                      prev, dp[j] = dp[j], min(dp[j] + 1, dp[j - 1] + 1, prev + (ca != cb))
+              return dp[-1]
+
+          syllables = [t for t in texts if "candidates" in t]
+          report, keys = [], []
+          for item in syllables:
+              out = f"public/audio/{item['key']}.mp3"
+              target = collapse(item["target"])
+              best = None
+              chosen = None
+              for cand in item["candidates"]:
+                  tts(cand, item["rate"], out)
+                  heard, dur = transcribe(out)
+                  norm = collapse(heard)
+                  # gespelde clips zijn lang en/of bevatten scheidingstekens
+                  spelled = dur > 2.3 or bool(re.search(r"[a-z][\s\.,;\-]+[a-z]", heard.lower()))
+                  ok = (not spelled) and lev(norm, target) <= 1 and len(norm) <= len(target) + 2
+                  score = ((0 if ok else 1), lev(norm, target), dur)
+                  if best is None or score < best[0]:
+                      best = (score, cand, heard, dur)
+                  if ok:
+                      chosen = (cand, heard, dur, "OK")
+                      break
+              if chosen is None:
+                  # geen kandidaat perfect: beste opnieuw genereren en markeren
+                  tts(best[1], item["rate"], out)
+                  chosen = (best[1], best[2], best[3], "CHECK!")
+              report.append((item["key"], *chosen))
+              keys.append(item["key"])
+
+          print(f"\n{'clip':8} {'tekst':8} {'status':7} {'sec':5} gehoord")
+          for key, cand, heard, dur, status in report:
+              print(f"{key:8} {cand:8} {status:7} {dur:4.1f}  {heard}")
+
+          manifest = {k: True for k in direct_keys + keys}
           with open("src/audio-manifest.json", "w") as f:
               json.dump(manifest, f, indent=1, sort_keys=True)
-          print(f"{len(keys)} audiobestanden gegenereerd")
+          print(f"\n{len(manifest)} audiobestanden gegenereerd")
           EOF
       - name: Commit and push
         run: |
