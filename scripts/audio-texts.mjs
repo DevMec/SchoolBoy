@@ -44,8 +44,10 @@ const LETTER_NAMES = {
 // transcripties, zodat de workflow de Engelse lezing kan afkeuren.
 const VOWEL_LETTER_CANDIDATES = {
   a: { candidates: ['aa', 'aah', 'ah'], expect: ['a', 'ah', 'aa'] },
-  e: { candidates: ['ee', 'eeh', 'eh'], expect: ['e', 'eh', 'ee'] },
-  i: { candidates: ['ie.', 'ieh', 'ie', 'iie'], expect: ['i', 'ie', 'ih', 'ih'] },
+  // 'a' bij e: Whisper schrijft de goede Nederlandse /e:/ als Engelse letter A.
+  e: { candidates: ['ee', 'eeh', 'eh'], expect: ['e', 'eh', 'ee', 'a'] },
+  // 'iie' voorop: die spelling gaf een zuivere ie-klank (de rest werd "Ey").
+  i: { candidates: ['iie', 'ie.', 'ieh', 'ie'], expect: ['i', 'ie', 'ih'] },
   o: { candidates: ['oo', 'oh', 'ooh', 'oo.'], expect: ['o', 'oh', 'oo'] },
   u: { candidates: ['uu', 'uuh', 'uh', 'uu.'], expect: ['u', 'uh', 'uu'] },
 }
@@ -91,7 +93,22 @@ for (const lesson of LESSONS) {
         us: ['uhs'],
         ij: ['ei!', 'ei.'],
         au: ['ou.', 'ou!'],
-        ee: ['eeh'], uu: ['uuh'], oe: ['oeh'], ie: ['ieh'],
+        // "iie" gaf voor de letter i een zuivere ie-klank (de andere
+        // spellingen werden Engels gelezen: "ieh" klonk als "Ey").
+        ee: ['eeh'], uu: ['uuh'], oe: ['oeh'], ie: ['iie', 'ieh'],
+      }
+      // Extra toegestane transcripties: zo schrijft Whisper deze (goede)
+      // Nederlandse klanken vaak op — geen fouten, alleen spellingsbias.
+      const EXPECT_EXTRA = {
+        ie: ['i', 'e'],       // /i/ wordt als Engelse letter E/i geschreven
+        ee: ['a'],            // /e:/ klinkt als de Engelse letter A
+        ij: ['ai'], ei: ['ai'], // /ɛi/ wordt "Ai" geschreven
+        jo: ['yo'],           // j → y in de transcriptie
+        ga: ['ha'],           // Nederlandse g klinkt voor Whisper als h
+        an: ['n'],            // korte klinker valt soms weg
+        oe: ['bo', 'boe'],    // Whisper hoort er een fantoom-b bij ("Boo")
+        we: ['de'],           // w/d-verwarring van de herkenner
+        uu: ['u'],
       }
       const base = syllableSpeechForm(s)
       const isCV = !VOWELS.includes(s[0]) && VOWELS.includes(s[1])
@@ -108,7 +125,7 @@ for (const lesson of LESSONS) {
       // Toegestane transcripties: de klank zelf, de -h-vorm, en bekende
       // stemhebbend/stemloos-verwisselingen van de herkenner (ka→ga, va→fa).
       const SWAP = { k: 'g', g: 'k', v: 'f', f: 'v', b: 'p', p: 'b', d: 't', t: 'd', s: 'z', z: 's' }
-      const expect = [s, `${s}h`, ...(EXTRA[s] || [])]
+      const expect = [s, `${s}h`, ...(EXTRA[s] || []), ...(EXPECT_EXTRA[s] || [])]
       if (isCV && SWAP[s[0]]) expect.push(SWAP[s[0]] + s[1], SWAP[s[0]] + s[1] + 'h')
       texts.push({ key, candidates, target: s, expect, rate: '-35%' })
     }
