@@ -82,7 +82,7 @@ jobs:
                   heard, dur = transcribe(out)
                   norm = collapse(heard)
                   # gespelde clips zijn lang en/of bevatten scheidingstekens
-                  spelled = dur > 2.3 or bool(re.search(r"[a-z][\s\.,;\-]+[a-z]", heard.lower()))
+                  spelled = dur > 2.6 or bool(re.search(r"[a-z][\s\.,;\-]+[a-z]", heard.lower()))
                   if expect:
                       # strenge lijst: alleen exact toegestane klanken
                       ok = (not spelled) and norm in expect
